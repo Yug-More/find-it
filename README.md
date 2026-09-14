@@ -19,3 +19,11 @@ Currently under development for CS 160: Software Engineering at San José State 
 - FastAPI (small server for AI embeddings)
 - Supabase (storage, auth)
 - OpenAI API (vector embeddings)
+
+# How to install
+
+TODO:
+
+- write prerequisites
+- write instructions
+- add README architecture diagram + design decisions
