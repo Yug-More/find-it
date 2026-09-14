@@ -11,3 +11,11 @@ Currently under development for CS 160: Software Engineering at San José State 
 - Yug Amol More
 - Marl Jonson
 - Brody Smith
+
+## Proposed Architecture
+
+- React Native (mobile interface: camera, GPS)
+- Spring Boot (core enterprise logic: users, claims, security)
+- FastAPI (small server for AI embeddings)
+- Supabase (storage, auth)
+- OpenAI API (vector embeddings)
