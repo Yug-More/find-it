@@ -8,9 +8,9 @@ Currently under development for CS 160: Software Engineering at San José State 
 
 ## Team 10 members
 
-- Yug Amol More
-- Marl Jonson
-- Brody Smith
+- Yug Amol More ([`Yug-More`](https://github.com/Yug-More))
+- Marl Jonson ([`marlware`](https://github.com/marlware))
+- Brody Smith ([`Brodys1`](https://github.com/Brodys1))
 
 ## Software architecture
 
@@ -20,7 +20,7 @@ Currently under development for CS 160: Software Engineering at San José State 
 - Supabase (storage, auth)
 - OpenAI API (vector embeddings)
 
-### Software architecture diagram
+### Diagram
 ```mermaid
 graph TD
     %% Define Styles

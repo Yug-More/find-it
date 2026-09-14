@@ -1,4 +1,4 @@
-# find-it/ai-service
+# find-it/ai-service/
 
 TODO:
 
