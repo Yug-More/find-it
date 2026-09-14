@@ -6,8 +6,8 @@ FindIt is an AI-powered lost-and-found platform that connects users with their m
 
 Currently under development for CS 160: Software Engineering at San José State University.
 
-## Team
+## Team 10 Members
 
-- Yug More
-- Marl
-- Brody
+- Yug Amol More
+- Marl Jonson
+- Brody Smith
