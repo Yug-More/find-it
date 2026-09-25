@@ -1,0 +1,18 @@
+-- Sample data for local development.
+--
+-- `profiles` rows are created automatically by the `handle_new_user` trigger
+-- when a user signs up through Supabase Auth, so you can't seed them directly.
+-- 1. Create a couple of test users (Supabase Studio > Authentication > Add user,
+--    or `supabase.auth.sign_up` from the mobile app).
+-- 2. Copy their ids from the `profiles` table and substitute them below.
+-- 3. Run this file in the Supabase SQL editor.
+
+-- Example (replace with real profile ids):
+-- insert into items (user_id, type, title, description, category, status)
+-- values
+--     ('00000000-0000-0000-0000-000000000001', 'lost', 'Black backpack', 'Lost near the MLK library, has a laptop inside.', 'bags', 'open'),
+--     ('00000000-0000-0000-0000-000000000002', 'found', 'Set of keys', 'Found on a bench outside the Student Union.', 'keys', 'open');
+--
+-- Note: `embedding` is left null here since seed rows are inserted directly,
+-- bypassing the API. Items created through POST /items always get an embedding
+-- generated automatically, which is what the matching endpoint relies on.
