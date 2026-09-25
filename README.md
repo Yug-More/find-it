@@ -17,7 +17,7 @@ Currently under development for CS 160: Software Engineering at San José State 
 - React Native (mobile interface: camera, GPS)
 - FastAPI (single backend: users, claims, security, and AI embeddings)
 - Supabase (storage, auth)
-- OpenAI API (vector embeddings)
+- Gemini API (vector embeddings)
 
 ### Diagram
 ```mermaid
@@ -33,14 +33,14 @@ graph TD
     MobileApp[React Native Mobile App<br/>'mobile-app']:::client
     AIService[FastAPI Service<br/>'ai-service']:::aiBackend
     SupabaseDB[(Supabase PostgreSQL<br/>+ pgvector)]:::database
-    OpenAI[OpenAI Embedding API]:::external
+    Gemini[Gemini Embedding API]:::external
 
     %% Data Flows
     User -->|Uploads item / searches| MobileApp
     MobileApp -->|HTTPS REST Request| AIService
 
-    AIService -->|1. Generate Vectors| OpenAI
-    OpenAI -->|2. Return Embedding| AIService
+    AIService -->|1. Generate Vectors| Gemini
+    Gemini -->|2. Return Embedding| AIService
 
     AIService -->|3. Save Meta & Vectors / Read Matches| SupabaseDB
 ```
