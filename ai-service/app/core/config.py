@@ -10,8 +10,9 @@ class Settings(BaseSettings):
     supabase_service_role_key: str
     supabase_jwt_secret: str
 
-    openai_api_key: str
-    embedding_model: str = "text-embedding-3-small"
+    gemini_api_key: str
+    embedding_model: str = "gemini-embedding-2"
+    embedding_dimensions: int = 1536
 
     cors_origins: str = "http://localhost:19006"
 
