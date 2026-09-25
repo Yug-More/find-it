@@ -20,7 +20,7 @@ The core backend for FindIt, built with FastAPI. Handles users, claims, security
    pip install -r requirements.txt
    ```
 
-3. Copy `.env.example` to `.env` and fill in your Supabase and OpenAI credentials:
+3. Copy `.env.example` to `.env` and fill in your Supabase and Gemini credentials:
 
    ```bash
    cp .env.example .env
@@ -28,7 +28,7 @@ The core backend for FindIt, built with FastAPI. Handles users, claims, security
 
    - `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`: Project Settings > API in your Supabase project.
    - `SUPABASE_JWT_SECRET`: Project Settings > API > JWT Settings.
-   - `OPENAI_API_KEY`: platform.openai.com API key used to generate embeddings.
+   - `GEMINI_API_KEY`: free API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey), used to generate embeddings. The Gemini API free tier (separate from any Google AI Pro/Plus subscription) is enough for this project.
 
 4. Apply the database schema (see [`../database/schema.sql`](../database/schema.sql)) to your Supabase project via the SQL editor or `supabase db push`.
 
