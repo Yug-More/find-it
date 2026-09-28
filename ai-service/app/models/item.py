@@ -20,6 +20,8 @@ class ItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     description: str = Field(min_length=1, max_length=2000)
     category: str | None = None
+    color: str | None = None
+    brand: str | None = None
     image_url: str | None = None
     location: str | None = None
     latitude: float | None = None
@@ -34,6 +36,8 @@ class ItemOut(BaseModel):
     title: str
     description: str
     category: str | None
+    color: str | None
+    brand: str | None
     image_url: str | None
     location: str | None
     latitude: float | None

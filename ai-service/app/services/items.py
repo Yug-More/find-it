@@ -12,7 +12,7 @@ MATCH_THRESHOLD = 0.75
 
 
 def _embedding_text(item: ItemCreate) -> str:
-    parts = [item.title, item.description, item.category or ""]
+    parts = [item.title, item.description, item.category or "", item.color or "", item.brand or ""]
     return " ".join(part for part in parts if part)
 
 
@@ -25,6 +25,8 @@ def create_item(supabase: Client, user_id: str, payload: ItemCreate) -> ItemOut:
         "title": payload.title,
         "description": payload.description,
         "category": payload.category,
+        "color": payload.color,
+        "brand": payload.brand,
         "image_url": payload.image_url,
         "location": payload.location,
         "latitude": payload.latitude,

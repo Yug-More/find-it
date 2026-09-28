@@ -36,6 +36,8 @@ create table if not exists items (
     title text not null,
     description text not null,
     category text,
+    color text,
+    brand text,
     image_url text,
     location text,
     latitude double precision,
