@@ -47,7 +47,7 @@ graph TD
 
 ## How to install
 
-> **Status:** preliminary. Only the backend (`ai-service`) and database schema are runnable right now, since `mobile-app` is still an empty scaffold, so its setup steps will be added once it's initialized.
+> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The Sprint 1 mobile app (`mobile-app`) runs locally against sample data. Live report submission is not connected yet, because `POST /items` requires a signed-in Supabase session.
 
 ### Prerequisites
 
@@ -55,7 +55,7 @@ graph TD
 - [Python 3.12+](https://www.python.org/downloads/) (needed for `ai-service`; avoid MSYS2/mingw Python builds, since they can't install some packages from PyPI)
 - A [Supabase](https://supabase.com/) project (free tier) with the `vector` extension enabled
 - A free [Gemini API key](https://aistudio.google.com/apikey) (used for embeddings)
-- [Node.js](https://nodejs.org/) + npm (for `mobile-app`, once it's scaffolded)
+- [Node.js](https://nodejs.org/) + npm (needed for `mobile-app`)
 
 ### Backend (`ai-service`)
 
@@ -98,9 +98,35 @@ Schema and seed instructions live in [`database/`](database/). Run [`schema.sql`
 
 ### Mobile app (`mobile-app`)
 
-Not yet scaffolded. Instructions coming once the Expo/React Native project is initialized.
+Sprint 1 includes the home screen, report form, reports list, and report details. The app uses sample data on the device by default. It does not submit reports to the API yet.
+
+1. From the repository root:
+
+   ```bash
+   cd mobile-app
+   npm install
+   ```
+
+2. Start Expo:
+
+   ```bash
+   npm start
+   ```
+
+   Open the project in Expo Go, a simulator, or the browser with `npm run web`.
+
+3. Checks:
+
+   ```bash
+   npm test
+   npm run lint
+   npm run typecheck
+   ```
+
+Copy `.env.example` to `.env` only if you need to change the API URL or turn off sample data. See [`mobile-app/README.md`](mobile-app/README.md) for the screen list, environment variables, and the live API limitation.
+
+Do not put access tokens in `.env`. Expo includes every `EXPO_PUBLIC_` variable in the client bundle.
 
 ### TODO
 
-- initialize `mobile-app` and document its setup
 - add design decisions to README
