@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+.pytest_cache/
 
 # Environment variables
 .env
@@ -14,6 +15,8 @@ venv/
 node_modules/
 .expo/
 npm-debug.log*
+coverage/
+dist/
 
 # Editors / OS
 .vscode/
