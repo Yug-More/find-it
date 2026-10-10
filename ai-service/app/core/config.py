@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     embedding_model: str = "gemini-embedding-2"
     embedding_dimensions: int = 1536
 
-    cors_origins: str = "http://localhost:19006"
+    cors_origins: str = "http://localhost:19006,http://localhost:8081"
 
     @property
     def cors_origin_list(self) -> list[str]:
