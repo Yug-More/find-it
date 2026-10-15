@@ -21,8 +21,29 @@ export async function createItem(input: ReportInput, accessToken: string): Promi
   );
 }
 
+export async function updateItem(
+  reportId: string,
+  input: ReportInput,
+  accessToken: string,
+): Promise<Report> {
+  return mapItem(
+    await request(`/items/${encodeURIComponent(reportId)}`, {
+      method: "PATCH",
+      accessToken,
+      body: toItemCreate(input),
+    }),
+  );
+}
+
+export async function deleteItem(reportId: string, accessToken: string): Promise<void> {
+  await request(`/items/${encodeURIComponent(reportId)}`, {
+    method: "DELETE",
+    accessToken,
+  });
+}
+
 type RequestOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   accessToken?: string;
   body?: Record<string, unknown>;
 };
@@ -55,14 +76,11 @@ async function request(path: string, options: RequestOptions = {}): Promise<unkn
   }
 
   if (!response.ok) {
-    const detail = await readErrorDetail(response);
-    if (response.status === 401 || response.status === 403) {
-      throw new ReportServiceError(detail ?? "Sign-in is required for this request.", "authentication");
-    }
-    if (response.status === 404) {
-      throw new ReportServiceError(detail ?? "That report could not be found.", "not_found");
-    }
-    throw new ReportServiceError(detail ?? "The request could not be completed.", "network");
+    throw httpError(response.status, await readErrorDetail(response));
+  }
+
+  if (response.status === 204) {
+    return null;
   }
 
   try {
@@ -72,11 +90,55 @@ async function request(path: string, options: RequestOptions = {}): Promise<unkn
   }
 }
 
+function httpError(status: number, detail: string | null): ReportServiceError {
+  if (status === 401) {
+    return new ReportServiceError(safeDetail(detail, "Sign-in is required for this request."), "authentication");
+  }
+  if (status === 403) {
+    return new ReportServiceError(
+      safeDetail(detail, "You do not have permission to change this report."),
+      "forbidden",
+    );
+  }
+  if (status === 404) {
+    return new ReportServiceError(safeDetail(detail, "That report could not be found."), "not_found");
+  }
+  if (status === 400 || status === 422) {
+    return new ReportServiceError(safeDetail(detail, "The report details were not accepted."), "validation");
+  }
+  if (status >= 500) {
+    return new ReportServiceError(
+      safeDetail(detail, "The server could not complete this request. Try again."),
+      "network",
+    );
+  }
+  return new ReportServiceError(safeDetail(detail, "The request could not be completed."), "network");
+}
+
+function safeDetail(detail: string | null, fallback: string): string {
+  if (!detail) {
+    return fallback;
+  }
+  if (/traceback|stack trace|sql|exception/i.test(detail)) {
+    return fallback;
+  }
+  return detail;
+}
+
 async function readErrorDetail(response: Response): Promise<string | null> {
   try {
     const body: unknown = await response.json();
-    if (isRecord(body) && typeof body.detail === "string") {
+    if (!isRecord(body)) {
+      return null;
+    }
+    if (typeof body.detail === "string") {
       return body.detail;
+    }
+    if (Array.isArray(body.detail)) {
+      const messages = body.detail
+        .map((item) => (isRecord(item) && typeof item.msg === "string" ? item.msg : ""))
+        .filter((message) => message.length > 0);
+      return messages.length > 0 ? messages.join(" ") : null;
     }
   } catch {
     return null;

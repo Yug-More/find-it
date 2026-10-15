@@ -3,11 +3,13 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { CATEGORIES } from "../../constants/categories";
 import { colors, spacing, typography } from "../../constants/theme";
-import type { ItemType, ReportFieldErrors, ReportInput } from "../../types/report";
+import type { ItemType, ReportFieldErrors, ReportInput, SelectedImage } from "../../types/report";
 import { hasFieldErrors, normalizeReportInput, validateReportInput } from "../../utils/validation";
 import { Button } from "../ui/Button";
 import { ChoiceGroup } from "../ui/ChoiceGroup";
+import { SectionHeading } from "../ui/SectionHeading";
 import { TextField } from "../ui/TextField";
+import { ImageField } from "./ImageField";
 
 const TYPE_OPTIONS = [
   { label: "Lost", value: "lost" },
@@ -21,7 +23,10 @@ const CATEGORY_OPTIONS = CATEGORIES.map((category) => ({
 
 type Props = {
   initialType: ItemType;
+  initialValues?: ReportInput;
   submitting: boolean;
+  submitLabel?: string;
+  submittingLabel?: string;
   serverError?: string | null;
   onSubmit: (input: ReportInput) => void | Promise<void>;
 };
@@ -32,21 +37,37 @@ const EMPTY_FORM: ReportInput = {
   category: "",
   description: "",
   color: "",
+  brand: "",
   location: "",
   eventDate: "",
+  image: null,
+  imageUrl: null,
 };
 
-export function ReportForm({ initialType, submitting, serverError, onSubmit }: Props) {
-  const [values, setValues] = useState<ReportInput>({ ...EMPTY_FORM, type: initialType });
+export function ReportForm({
+  initialType,
+  initialValues,
+  submitting,
+  submitLabel = "Submit report",
+  submittingLabel = "Submitting",
+  serverError,
+  onSubmit,
+}: Props) {
+  const [values, setValues] = useState<ReportInput>(initialValues ?? { ...EMPTY_FORM, type: initialType });
   const valuesRef = useRef(values);
+  const [image, setImage] = useState<SelectedImage | null>(initialValues?.image ?? null);
+  const [imageUrl, setImageUrl] = useState<string | null>(initialValues?.imageUrl ?? null);
   const [errors, setErrors] = useState<ReportFieldErrors>({});
   const showErrorsRef = useRef(false);
 
   useEffect(() => {
+    if (initialValues) {
+      return;
+    }
     const next = { ...valuesRef.current, type: initialType };
     valuesRef.current = next;
     setValues(next);
-  }, [initialType]);
+  }, [initialType, initialValues]);
 
   function update<Key extends keyof ReportInput>(key: Key, value: ReportInput[Key]) {
     const next = { ...valuesRef.current, [key]: value };
@@ -65,13 +86,20 @@ export function ReportForm({ initialType, submitting, serverError, onSubmit }: P
     if (hasFieldErrors(nextErrors) || submitting) {
       return;
     }
-    return onSubmit(normalizeReportInput(current));
+    return onSubmit(
+      normalizeReportInput({
+        ...current,
+        image,
+        imageUrl: image ? null : imageUrl,
+      }),
+    );
   }
 
   const dateLabel = values.type === "lost" ? "Date lost" : "Date found";
 
   return (
     <View style={styles.form}>
+      <SectionHeading title="Report" />
       <ChoiceGroup
         label="Report type"
         required
@@ -81,6 +109,17 @@ export function ReportForm({ initialType, submitting, serverError, onSubmit }: P
         error={errors.type}
         disabled={submitting}
       />
+      <SectionHeading title="Photo" />
+      <ImageField
+        image={image}
+        imageUrl={imageUrl}
+        disabled={submitting}
+        onChange={(nextImage, nextUrl) => {
+          setImage(nextImage);
+          setImageUrl(nextUrl);
+        }}
+      />
+      <SectionHeading title="Item" />
       <TextField
         label="Item name"
         required
@@ -120,6 +159,16 @@ export function ReportForm({ initialType, submitting, serverError, onSubmit }: P
         maxLength={40}
       />
       <TextField
+        label="Brand"
+        value={values.brand}
+        onChangeText={(value) => update("brand", value)}
+        error={errors.brand}
+        autoCapitalize="words"
+        editable={!submitting}
+        maxLength={80}
+      />
+      <SectionHeading title="Where and when" />
+      <TextField
         label="Location"
         required
         value={values.location}
@@ -146,7 +195,7 @@ export function ReportForm({ initialType, submitting, serverError, onSubmit }: P
         </Text>
       ) : null}
       <Button
-        label={submitting ? "Submitting" : "Submit report"}
+        label={submitting ? submittingLabel : submitLabel}
         onPress={handleSubmit}
         disabled={submitting}
       />

@@ -20,14 +20,37 @@ export type Report = {
   createdAt: string;
 };
 
+export type SelectedImage = {
+  uri: string;
+  mimeType: string;
+  fileName: string;
+  fileSize: number | null;
+};
+
 export type ReportInput = {
   type: ItemType;
   title: string;
   category: string;
   description: string;
   color: string;
+  brand: string;
   location: string;
   eventDate: string;
+  image: SelectedImage | null;
+  imageUrl: string | null;
+};
+
+export type ReportTypeFilter = ItemType | "all";
+export type ReportStatusFilter = ItemStatus | "all";
+
+export type ReportFilters = {
+  query: string;
+  type: ReportTypeFilter;
+  category: string;
+  location: string;
+  dateFrom: string;
+  dateTo: string;
+  status: ReportStatusFilter;
 };
 
 export type ReportField = keyof ReportInput;

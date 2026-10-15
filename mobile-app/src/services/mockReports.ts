@@ -6,7 +6,7 @@ const LOCAL_USER_ID = "local-user";
 const sampleReports: Report[] = [
   {
     id: "sample-lost-keys",
-    userId: LOCAL_USER_ID,
+    userId: "user-1",
     type: "lost",
     title: "Toyota key fob",
     description: "Silver key fob on a black lanyard. A house key is on the same ring.",
@@ -23,11 +23,11 @@ const sampleReports: Report[] = [
   },
   {
     id: "sample-found-bottle",
-    userId: LOCAL_USER_ID,
+    userId: "other-user",
     type: "found",
     title: "Red water bottle",
     description: "Red wide-mouth bottle with a straw lid and a dent near the base.",
-    category: "Accessories",
+    category: "Bottles",
     color: "Red",
     brand: null,
     imageUrl: null,
@@ -55,18 +55,18 @@ export function getMockReport(reportId: string): Report {
   return { ...report };
 }
 
-export function createMockReport(input: ReportInput): Report {
+export function createMockReport(input: ReportInput, userId = LOCAL_USER_ID): Report {
   const createdAt = new Date().toISOString();
   const report: Report = {
     id: `local-${nextNumber}`,
-    userId: LOCAL_USER_ID,
+    userId,
     type: input.type,
     title: input.title,
     description: input.description,
     category: input.category,
     color: input.color || null,
-    brand: null,
-    imageUrl: null,
+    brand: input.brand.trim() || null,
+    imageUrl: input.image?.uri ?? input.imageUrl,
     location: input.location,
     latitude: null,
     longitude: null,
@@ -77,6 +77,42 @@ export function createMockReport(input: ReportInput): Report {
   nextNumber += 1;
   reports = [report, ...reports];
   return { ...report };
+}
+
+export function updateMockReport(reportId: string, input: ReportInput, userId: string): Report {
+  const current = reports.find((item) => item.id === reportId);
+  if (!current) {
+    throw new ReportServiceError("That report could not be found.", "not_found");
+  }
+  if (current.userId !== userId) {
+    throw new ReportServiceError("You can only change reports you created.", "forbidden");
+  }
+
+  const updated: Report = {
+    ...current,
+    type: input.type,
+    title: input.title,
+    description: input.description,
+    category: input.category,
+    color: input.color || null,
+    brand: input.brand.trim() || null,
+    imageUrl: input.image?.uri ?? input.imageUrl,
+    location: input.location,
+    eventDate: input.eventDate,
+  };
+  reports = reports.map((item) => (item.id === reportId ? updated : item));
+  return { ...updated };
+}
+
+export function deleteMockReport(reportId: string, userId: string): void {
+  const current = reports.find((item) => item.id === reportId);
+  if (!current) {
+    throw new ReportServiceError("That report could not be found.", "not_found");
+  }
+  if (current.userId !== userId) {
+    throw new ReportServiceError("You can only delete reports you created.", "forbidden");
+  }
+  reports = reports.filter((item) => item.id !== reportId);
 }
 
 export function resetMockReports(): void {

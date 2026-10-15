@@ -40,3 +40,12 @@ export const typography = {
 } as const;
 
 export const touchTarget = 48;
+export const iconSize = 20;
+
+export const elevation = {
+  shadowColor: "#1B2430",
+  shadowOpacity: 0.06,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 1,
+} as const;

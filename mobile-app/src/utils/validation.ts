@@ -5,6 +5,7 @@ import { isCalendarDate, todayIsoDate } from "./dates";
 const TITLE_LIMIT = 120;
 const DESCRIPTION_LIMIT = 2000;
 const COLOR_LIMIT = 40;
+const BRAND_LIMIT = 80;
 const LOCATION_LIMIT = 200;
 
 export function validateReportInput(input: ReportInput, now = new Date()): ReportFieldErrors {
@@ -12,6 +13,7 @@ export function validateReportInput(input: ReportInput, now = new Date()): Repor
   const title = input.title.trim();
   const description = input.description.trim();
   const color = input.color.trim();
+  const brand = input.brand.trim();
   const location = input.location.trim();
   const eventDate = input.eventDate.trim();
 
@@ -37,6 +39,10 @@ export function validateReportInput(input: ReportInput, now = new Date()): Repor
 
   if (color.length > COLOR_LIMIT) {
     errors.color = `Color must be ${COLOR_LIMIT} characters or fewer.`;
+  }
+
+  if (brand.length > BRAND_LIMIT) {
+    errors.brand = `Brand must be ${BRAND_LIMIT} characters or fewer.`;
   }
 
   if (!location) {
@@ -67,7 +73,10 @@ export function normalizeReportInput(input: ReportInput): ReportInput {
     category: input.category,
     description: input.description.trim(),
     color: input.color.trim(),
+    brand: input.brand.trim(),
     location: input.location.trim(),
     eventDate: input.eventDate.trim(),
+    image: input.image,
+    imageUrl: input.imageUrl,
   };
 }

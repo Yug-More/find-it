@@ -1,9 +1,11 @@
 export const CATEGORIES = [
   "Electronics",
-  "Bags",
+  "Wallets and Bags",
   "Keys",
   "Clothing",
   "Accessories",
+  "Documents",
+  "Bottles",
   "Other",
 ] as const;
 

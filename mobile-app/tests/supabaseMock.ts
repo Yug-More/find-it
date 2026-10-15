@@ -12,6 +12,9 @@ type MockState = {
   getSessionError: string | null;
   signInCalls: number;
   signUpCalls: number;
+  uploadError: string | null;
+  uploadCalls: number;
+  lastUploadPath: string | null;
   lastSignInEmail: string | null;
   lastSignUp: { email: string; fullName: string } | null;
 };
@@ -26,6 +29,9 @@ const state: MockState = {
   getSessionError: null,
   signInCalls: 0,
   signUpCalls: 0,
+  uploadError: null,
+  uploadCalls: 0,
+  lastUploadPath: null,
   lastSignInEmail: null,
   lastSignUp: null,
 };
@@ -76,6 +82,9 @@ export function resetSupabaseMock(): void {
   state.getSessionError = null;
   state.signInCalls = 0;
   state.signUpCalls = 0;
+  state.uploadError = null;
+  state.uploadCalls = 0;
+  state.lastUploadPath = null;
   state.lastSignInEmail = null;
   state.lastSignUp = null;
   process.env.EXPO_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
@@ -144,6 +153,18 @@ export function getLastSignInEmail(): string | null {
 
 export function getLastSignUp(): { email: string; fullName: string } | null {
   return state.lastSignUp;
+}
+
+export function setUploadError(message: string | null): void {
+  state.uploadError = message;
+}
+
+export function uploadCallCount(): number {
+  return state.uploadCalls;
+}
+
+export function getLastUploadPath(): string | null {
+  return state.lastUploadPath;
 }
 
 export function getMockSession(): Session | null {
@@ -219,6 +240,23 @@ export function getSupabaseClient(): SupabaseClient {
         emit("SIGNED_OUT", null);
         return { error: null };
       },
+    },
+    storage: {
+      from: () => ({
+        upload: async (path: string) => {
+          state.uploadCalls += 1;
+          state.lastUploadPath = path;
+          if (state.uploadError) {
+            return { data: null, error: { message: state.uploadError } };
+          }
+          return { data: { path }, error: null };
+        },
+        getPublicUrl: (path: string) => ({
+          data: {
+            publicUrl: `https://example.supabase.co/storage/v1/object/public/report-images/${path}`,
+          },
+        }),
+      }),
     },
   } as unknown as SupabaseClient;
 }
