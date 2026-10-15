@@ -60,6 +60,8 @@ app/
 | POST   | `/items`                  | Report a lost/found item (generates embedding) |
 | GET    | `/items`                  | Browse open items (optional `?type=lost/found`)|
 | GET    | `/items/{id}`             | Get a single item                              |
+| PATCH  | `/items/{id}`             | Update a report (owner only)                   |
+| DELETE | `/items/{id}`             | Delete a report (owner only)                   |
 | GET    | `/items/{id}/matches`     | Find likely matches for an item                |
 | POST   | `/items/{id}/claims`      | Submit a claim on an item                      |
 | GET    | `/items/{id}/claims`      | List claims on an item (owner only)            |
