@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, spacing, typography } from "../../constants/theme";
+import { colors, layout, radius, spacing, typography } from "../../constants/theme";
 import { Button } from "./Button";
 
 type Props = {
@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(27, 36, 48, 0.4)",
   },
   dialog: {
+    width: "100%",
+    maxWidth: layout.contentMaxWidth,
+    alignSelf: "center",
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,

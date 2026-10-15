@@ -24,7 +24,8 @@ export function FilterChip({ label, selected, onPress }: Props) {
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 36,
+    minHeight: 44,
+    flexShrink: 0,
     justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,

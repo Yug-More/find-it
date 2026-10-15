@@ -74,13 +74,17 @@ export function ReportDetailsScreen() {
             <StatusBadge label={report.category ?? "No category"} tone="neutral" />
             <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
           </View>
-          <Detail label="Description" value={report.description} />
+        <Detail label="Description" value={report.description} />
+        <View style={styles.pair}>
           <Detail label="Color" value={report.color ?? "Not provided"} />
           <Detail label="Brand" value={report.brand ?? "Not provided"} />
-          <Detail label="Location" value={report.location ?? "Not provided"} />
+        </View>
+        <Detail label="Location" value={report.location ?? "Not provided"} />
+        <View style={styles.pair}>
           <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
           <Detail label="Status" value={statusBadge.label} />
-          <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
+        </View>
+        <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
         </View>
         {owner ? (
           <View style={styles.actions}>
@@ -147,13 +151,22 @@ const styles = StyleSheet.create({
   title: {
     ...typography.title,
     color: colors.text,
+    flexShrink: 1,
   },
   badges: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
   },
+  pair: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+  },
   detail: {
+    flexGrow: 1,
+    flexBasis: 140,
+    minWidth: 140,
     gap: spacing.xs,
   },
   detailLabel: {
@@ -163,6 +176,7 @@ const styles = StyleSheet.create({
   detailValue: {
     ...typography.body,
     color: colors.text,
+    flexShrink: 1,
   },
   actions: {
     gap: spacing.sm,

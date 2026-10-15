@@ -59,7 +59,7 @@ export function ImageField({ image, imageUrl, disabled = false, onChange }: Prop
 
   return (
     <View style={styles.field}>
-      <ReportImage uri={preview} label="Selected report photo" compact={hasPhoto} />
+      <ReportImage uri={preview} label="Selected report photo" size={hasPhoto ? "hero" : "field"} />
       <Button
         label={hasPhoto ? "Replace photo" : "Add photo"}
         variant="outline"

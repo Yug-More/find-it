@@ -28,25 +28,37 @@ export function ReportCard({ report, onPress, onEdit, onDelete }: Props) {
         onPress={onPress}
         style={({ pressed }) => [styles.body, pressed && styles.pressed]}
       >
-        <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} compact />
-        <Text style={styles.title} numberOfLines={2}>
-          {report.title}
-        </Text>
-        <View style={styles.badges}>
-          <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
-          <StatusBadge label={category} tone="neutral" />
-          <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
+        <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} size="thumb" />
+        <View style={styles.copy}>
+          <Text style={styles.title} numberOfLines={2}>
+            {report.title}
+          </Text>
+          <View style={styles.badges}>
+            <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
+            <StatusBadge label={category} tone="neutral" />
+            <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
+          </View>
+          <Text style={styles.meta} numberOfLines={1}>
+            {location}
+          </Text>
+          <Text style={styles.meta}>{formatItemDate(report.eventDate)}</Text>
         </View>
-        <Text style={styles.meta}>{location}</Text>
-        <Text style={styles.meta}>{formatItemDate(report.eventDate)}</Text>
-        <Text style={styles.preview} numberOfLines={2}>
-          {report.description}
-        </Text>
       </Pressable>
+      <Text style={styles.preview} numberOfLines={2}>
+        {report.description}
+      </Text>
       {onEdit || onDelete ? (
         <View style={styles.actions}>
-          {onEdit ? <Button label="Edit" variant="outline" onPress={onEdit} /> : null}
-          {onDelete ? <Button label="Delete" variant="destructive" onPress={onDelete} /> : null}
+          {onEdit ? (
+            <View style={styles.action}>
+              <Button label="Edit" variant="outline" onPress={onEdit} />
+            </View>
+          ) : null}
+          {onDelete ? (
+            <View style={styles.action}>
+              <Button label="Delete" variant="destructive" onPress={onDelete} />
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -67,8 +79,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
   },
+  action: {
+    flex: 1,
+  },
   body: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.sm,
+  },
+  copy: {
+    flex: 1,
+    gap: spacing.xs,
+    minWidth: 0,
   },
   pressed: {
     opacity: 0.88,
@@ -76,6 +98,7 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading,
     color: colors.text,
+    flexShrink: 1,
   },
   badges: {
     flexDirection: "row",

@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { CATEGORIES } from "../../constants/categories";
 import { colors, spacing, typography } from "../../constants/theme";
@@ -31,6 +32,11 @@ export function ReportFiltersBar({ filters, resultCount, onChange }: Props) {
   const active = activeFilterCount(filters);
   const dateError = filterDateError(filters);
   const countLabel = resultCount === 1 ? "1 report" : `${resultCount} reports`;
+  const hasDetailFilters = Boolean(
+    filters.location.trim() || filters.dateFrom.trim() || filters.dateTo.trim(),
+  );
+  const [moreOpen, setMoreOpen] = useState(false);
+  const showDetails = moreOpen || hasDetailFilters;
 
   function update(partial: Partial<ReportFilters>) {
     onChange({ ...filters, ...partial });
@@ -57,38 +63,51 @@ export function ReportFiltersBar({ filters, resultCount, onChange }: Props) {
         selected={filters.status}
         onSelect={(status) => update({ status })}
       />
-      <TextField
-        label="Location contains"
-        value={filters.location}
-        onChangeText={(location) => update({ location })}
-        autoCapitalize="words"
-      />
-      <TextField
-        label="From date"
-        value={filters.dateFrom}
-        onChangeText={(dateFrom) => update({ dateFrom })}
-        helper="YYYY-MM-DD"
-        autoCapitalize="none"
-        maxLength={10}
-      />
-      <TextField
-        label="To date"
-        value={filters.dateTo}
-        onChangeText={(dateTo) => update({ dateTo })}
-        helper="YYYY-MM-DD"
-        autoCapitalize="none"
-        maxLength={10}
-        error={dateError ?? undefined}
-      />
-      <Text accessibilityLiveRegion="polite" style={styles.count}>
-        {active > 0 ? `${countLabel}, ${active} ${active === 1 ? "filter" : "filters"}` : countLabel}
-      </Text>
       <Button
-        label="Clear filters"
+        label={showDetails ? "Hide location and dates" : "Location and dates"}
         variant="text"
-        onPress={() => onChange(EMPTY_FILTERS)}
-        disabled={active === 0}
+        onPress={() => setMoreOpen((open) => !open)}
       />
+      {showDetails ? (
+        <View style={styles.details}>
+          <TextField
+            label="Location contains"
+            value={filters.location}
+            onChangeText={(location) => update({ location })}
+            autoCapitalize="words"
+          />
+          <TextField
+            label="From date"
+            value={filters.dateFrom}
+            onChangeText={(dateFrom) => update({ dateFrom })}
+            helper="YYYY-MM-DD"
+            autoCapitalize="none"
+            maxLength={10}
+          />
+          <TextField
+            label="To date"
+            value={filters.dateTo}
+            onChangeText={(dateTo) => update({ dateTo })}
+            helper="YYYY-MM-DD"
+            autoCapitalize="none"
+            maxLength={10}
+            error={dateError ?? undefined}
+          />
+        </View>
+      ) : null}
+      <View style={styles.summary}>
+        <Text accessibilityLiveRegion="polite" style={styles.count}>
+          {active > 0 ? `${countLabel}, ${active} ${active === 1 ? "filter" : "filters"}` : countLabel}
+        </Text>
+        <View style={styles.clear}>
+          <Button
+            label="Clear filters"
+            variant="text"
+            onPress={() => onChange(EMPTY_FILTERS)}
+            disabled={active === 0}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -107,7 +126,11 @@ function ChipRow<Value extends string>({
   return (
     <View style={styles.group}>
       <Text style={styles.groupLabel}>{label}</Text>
-      <View style={styles.chips}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chips}
+      >
         {options.map((option) => (
           <FilterChip
             key={option.value}
@@ -116,7 +139,7 @@ function ChipRow<Value extends string>({
             onPress={() => onSelect(option.value)}
           />
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -135,8 +158,19 @@ const styles = StyleSheet.create({
   },
   chips: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     gap: spacing.sm,
+    paddingRight: spacing.md,
+  },
+  details: {
+    gap: spacing.md,
+  },
+  summary: {
+    gap: spacing.xs,
+  },
+  clear: {
+    alignSelf: "flex-start",
+    minWidth: 140,
   },
   count: {
     ...typography.body,

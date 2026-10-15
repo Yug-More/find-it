@@ -42,10 +42,10 @@ export const typography = {
 export const touchTarget = 48;
 export const iconSize = 20;
 
+export const layout = {
+  contentMaxWidth: 560,
+} as const;
+
 export const elevation = {
-  shadowColor: "#1B2430",
-  shadowOpacity: 0.06,
-  shadowRadius: 8,
-  shadowOffset: { width: 0, height: 2 },
-  elevation: 1,
+  boxShadow: "0px 1px 2px rgba(27, 36, 48, 0.08)",
 } as const;

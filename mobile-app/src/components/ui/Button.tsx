@@ -47,6 +47,7 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
 const styles = StyleSheet.create({
   base: {
     minHeight: touchTarget,
+    width: "100%",
     borderRadius: radius.sm,
     alignItems: "center",
     justifyContent: "center",

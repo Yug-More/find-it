@@ -47,42 +47,43 @@ export function TextField({
     <View style={styles.field}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
-        <View style={styles.labelActions}>
-          {canReveal ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={revealed ? "Hide password" : "Show password"}
-              onPress={() => setRevealed((current) => !current)}
-              hitSlop={8}
-            >
-              <Text style={styles.reveal}>{revealed ? "Hide" : "Show"}</Text>
-            </Pressable>
-          ) : null}
-          <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
-        </View>
+        <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
       </View>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        editable={editable}
-        multiline={multiline}
-        maxLength={maxLength}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={autoCorrect}
-        autoComplete={autoComplete}
-        textContentType={textContentType}
-        keyboardType={keyboardType}
-        secureTextEntry={hidden}
-        accessibilityLabel={label}
-        accessibilityHint={required ? "Required" : "Optional"}
-        textAlignVertical={multiline ? "top" : "center"}
-        style={[
-          styles.input,
-          multiline && styles.multiline,
-          error ? styles.inputError : null,
-          !editable && styles.inputDisabled,
-        ]}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          editable={editable}
+          multiline={multiline}
+          maxLength={maxLength}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
+          textContentType={textContentType}
+          keyboardType={keyboardType}
+          secureTextEntry={hidden}
+          accessibilityLabel={label}
+          accessibilityHint={required ? "Required" : "Optional"}
+          textAlignVertical={multiline ? "top" : "center"}
+          style={[
+            styles.input,
+            canReveal && styles.inputWithReveal,
+            multiline && styles.multiline,
+            error ? styles.inputError : null,
+            !editable && styles.inputDisabled,
+          ]}
+        />
+        {canReveal ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={revealed ? "Hide password" : "Show password"}
+            onPress={() => setRevealed((current) => !current)}
+            style={styles.revealButton}
+          >
+            <Text style={styles.reveal}>{revealed ? "Hide" : "Show"}</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {helper ? <Text style={styles.helper}>{helper}</Text> : null}
       {error ? (
         <Text accessibilityRole="alert" style={styles.error}>
@@ -100,17 +101,8 @@ const styles = StyleSheet.create({
   labelRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "baseline",
-    gap: spacing.sm,
-  },
-  labelActions: {
-    flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  reveal: {
-    ...typography.label,
-    color: colors.accent,
   },
   label: {
     ...typography.label,
@@ -120,6 +112,24 @@ const styles = StyleSheet.create({
   requirement: {
     ...typography.caption,
     color: colors.textSecondary,
+    flexShrink: 0,
+  },
+  inputWrap: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  revealButton: {
+    position: "absolute",
+    right: spacing.xs,
+    top: 0,
+    bottom: 0,
+    minWidth: touchTarget,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reveal: {
+    ...typography.label,
+    color: colors.accent,
   },
   input: {
     minHeight: touchTarget,
@@ -131,6 +141,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     paddingHorizontal: spacing.sm + spacing.xs,
     paddingVertical: spacing.sm,
+  },
+  inputWithReveal: {
+    paddingRight: touchTarget + spacing.md,
   },
   multiline: {
     minHeight: 120,

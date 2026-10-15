@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView, type Edges } from "react-native-safe-area-context";
 
-import { colors, spacing } from "../../constants/theme";
+import { colors, layout, spacing } from "../../constants/theme";
 
 type Props = {
   children: ReactNode;
@@ -42,6 +42,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+    width: "100%",
+    maxWidth: layout.contentMaxWidth,
+    alignSelf: "center",
     padding: spacing.md,
     gap: spacing.md,
   },

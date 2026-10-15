@@ -22,6 +22,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const screenOptions = {
   headerStyle: { backgroundColor: colors.surface },
   headerShadowVisible: false,
+  headerBackButtonDisplayMode: "minimal" as const,
   headerTintColor: colors.text,
   headerTitleStyle: {
     fontSize: typography.heading.fontSize,

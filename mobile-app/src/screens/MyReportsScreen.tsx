@@ -9,7 +9,7 @@ import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
-import { colors, spacing, typography } from "../constants/theme";
+import { colors, layout, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import { useReports } from "../hooks/useReports";
 import type { RootStackParamList } from "../navigation/types";
@@ -133,6 +133,7 @@ export function MyReportsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   listView: {
     flex: 1,
@@ -141,7 +142,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm + spacing.xs,
     flexGrow: 1,
-    backgroundColor: colors.background,
+    width: "100%",
+    maxWidth: layout.contentMaxWidth,
+    alignSelf: "center",
   },
   count: {
     ...typography.body,

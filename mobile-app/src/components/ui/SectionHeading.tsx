@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from "react-native";
 
-import { colors, typography } from "../../constants/theme";
+import { colors, spacing, typography } from "../../constants/theme";
 
 type Props = {
   title: string;
@@ -18,5 +18,6 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading,
     color: colors.text,
+    marginTop: spacing.sm,
   },
 });

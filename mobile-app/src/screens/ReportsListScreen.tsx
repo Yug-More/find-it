@@ -9,7 +9,7 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
-import { colors, spacing, typography } from "../constants/theme";
+import { colors, layout, spacing, typography } from "../constants/theme";
 import { useReports } from "../hooks/useReports";
 import type { RootStackParamList } from "../navigation/types";
 import type { ReportFilters } from "../types/report";
@@ -32,6 +32,7 @@ export function ReportsListScreen() {
 
   return (
     <FlatList
+      style={styles.screen}
       data={visible}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.list}
@@ -79,11 +80,17 @@ export function ReportsListScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   list: {
     padding: spacing.md,
     gap: spacing.sm + spacing.xs,
     flexGrow: 1,
-    backgroundColor: colors.background,
+    width: "100%",
+    maxWidth: layout.contentMaxWidth,
+    alignSelf: "center",
   },
   inlineError: {
     gap: spacing.xs,
