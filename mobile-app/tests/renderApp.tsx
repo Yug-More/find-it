@@ -1,8 +1,9 @@
 import { NavigationContainer } from "@react-navigation/native";
-import { render, type RenderOptions } from "@testing-library/react-native";
+import { render, waitFor, type RenderOptions } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AuthProvider } from "../src/context/AuthContext";
 import { RootNavigator } from "../src/navigation/RootNavigator";
 
 const initialMetrics = {
@@ -10,11 +11,26 @@ const initialMetrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-export function renderApp(ui: ReactElement = <RootNavigator />, options?: RenderOptions) {
-  return render(
+type Options = RenderOptions & {
+  settleAuth?: boolean;
+};
+
+export async function renderApp(ui: ReactElement = <RootNavigator />, options?: Options) {
+  const { settleAuth = true, ...renderOptions } = options ?? {};
+  const view = await render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
-      <NavigationContainer>{ui}</NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer>{ui}</NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>,
-    options,
+    renderOptions,
   );
+
+  if (settleAuth) {
+    await waitFor(() => {
+      expect(view.queryByText("Restoring your session")).toBeNull();
+    });
+  }
+
+  return view;
 }

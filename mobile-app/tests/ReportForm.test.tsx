@@ -2,16 +2,8 @@ import { cleanup, fireEvent, userEvent } from "@testing-library/react-native";
 
 import { ReportForm } from "../src/components/reports/ReportForm";
 import { resetMockReports } from "../src/services/mockReports";
+import { pressButton } from "./pressButton";
 import { renderApp } from "./renderApp";
-
-// Inside a native stack screen, Pressable receives the accessibility click on `onClick`.
-function pressButton(instance: { props: { onClick?: (event: object) => void } }) {
-  instance.props.onClick?.({
-    nativeEvent: {},
-    currentTarget: instance,
-    target: instance,
-  });
-}
 
 describe("ReportForm", () => {
   beforeEach(async () => {
@@ -46,15 +38,15 @@ describe("ReportForm", () => {
     const view = await renderApp();
     await userEvent.press(view.getByRole("button", { name: "Report a lost item" }));
 
-    fireEvent.changeText(await view.findByLabelText("Item name"), "Blue notebook");
+    await fireEvent.changeText(await view.findByLabelText("Item name"), "Blue notebook");
     await userEvent.press(view.getByRole("radio", { name: "Other" }));
-    fireEvent.changeText(
+    await fireEvent.changeText(
       view.getByLabelText("Description"),
       "A blue notebook left in a study room.",
     );
-    fireEvent.changeText(view.getByLabelText("Location"), "King Library");
-    fireEvent.changeText(view.getByLabelText("Date lost"), "2026-01-15");
-    pressButton(view.getByRole("button", { name: "Submit report" }));
+    await fireEvent.changeText(view.getByLabelText("Location"), "King Library");
+    await fireEvent.changeText(view.getByLabelText("Date lost"), "2026-01-15");
+    await pressButton(view.getByRole("button", { name: "Submit report" }));
 
     expect(await view.findByText("Report submitted")).toBeOnTheScreen();
     expect(view.getByText("Blue notebook was added to the reports list.")).toBeOnTheScreen();

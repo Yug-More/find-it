@@ -23,7 +23,7 @@ type Props = {
   initialType: ItemType;
   submitting: boolean;
   serverError?: string | null;
-  onSubmit: (input: ReportInput) => void;
+  onSubmit: (input: ReportInput) => void | Promise<void>;
 };
 
 const EMPTY_FORM: ReportInput = {
@@ -65,7 +65,7 @@ export function ReportForm({ initialType, submitting, serverError, onSubmit }: P
     if (hasFieldErrors(nextErrors) || submitting) {
       return;
     }
-    onSubmit(normalizeReportInput(current));
+    return onSubmit(normalizeReportInput(current));
   }
 
   const dateLabel = values.type === "lost" ? "Date lost" : "Date found";

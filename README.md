@@ -47,7 +47,7 @@ graph TD
 
 ## How to install
 
-> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The Sprint 1 mobile app (`mobile-app`) runs locally against sample data. Live report submission is not connected yet, because `POST /items` requires a signed-in Supabase session.
+> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The mobile app (`mobile-app`) supports sign-up, sign-in, and browsing reports. Signed-in users can submit a report to `POST /items`. That request still depends on the backend Supabase and Gemini configuration.
 
 ### Prerequisites
 
@@ -98,7 +98,7 @@ Schema and seed instructions live in [`database/`](database/). Run [`schema.sql`
 
 ### Mobile app (`mobile-app`)
 
-Sprint 1 includes the home screen, report form, reports list, and report details. The app uses sample data on the device by default. It does not submit reports to the API yet.
+The app includes sign-up, sign-in, a profile screen, and the report flow. Sample data is on by default. A signed-in user can submit a report to `POST /items` with the Supabase access token.
 
 1. From the repository root:
 
@@ -107,7 +107,9 @@ Sprint 1 includes the home screen, report form, reports list, and report details
    npm install
    ```
 
-2. Start Expo:
+2. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` when you want to sign in. Leave `EXPO_PUBLIC_USE_MOCK=true` to keep sample data on the device.
+
+3. Start Expo:
 
    ```bash
    npm start
@@ -115,7 +117,7 @@ Sprint 1 includes the home screen, report form, reports list, and report details
 
    Open the project in Expo Go, a simulator, or the browser with `npm run web`.
 
-3. Checks:
+4. Checks:
 
    ```bash
    npm test
@@ -123,9 +125,7 @@ Sprint 1 includes the home screen, report form, reports list, and report details
    npm run typecheck
    ```
 
-Copy `.env.example` to `.env` only if you need to change the API URL or turn off sample data. See [`mobile-app/README.md`](mobile-app/README.md) for the screen list, environment variables, and the live API limitation.
-
-Do not put access tokens in `.env`. Expo includes every `EXPO_PUBLIC_` variable in the client bundle.
+See [`mobile-app/README.md`](mobile-app/README.md) for environment variables, mock mode, and live submission. Do not put the Supabase service-role key, JWT secret, Gemini API key, or access tokens in the mobile app. Expo includes every `EXPO_PUBLIC_` variable in the client bundle.
 
 ### TODO
 

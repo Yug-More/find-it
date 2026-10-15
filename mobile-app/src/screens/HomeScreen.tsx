@@ -35,6 +35,7 @@ export function HomeScreen() {
           variant="text"
           onPress={() => navigation.navigate("Reports")}
         />
+        <Button label="Profile" variant="text" onPress={() => navigation.navigate("Profile")} />
       </View>
       <View style={styles.panel}>
         <Text accessibilityRole="header" style={styles.panelTitle}>

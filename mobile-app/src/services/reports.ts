@@ -8,7 +8,7 @@ const MISSING_URL =
   "The API URL is not configured. Set EXPO_PUBLIC_API_URL before turning off sample data.";
 
 const MISSING_SESSION =
-  "Sign-in is required to submit a report. This release does not include authentication, so the report was not sent to the server.";
+  "Sign-in is required to submit a report. The report was not sent to the server.";
 
 export async function listReports(): Promise<Report[]> {
   if (shouldUseMockData()) {
@@ -26,8 +26,8 @@ export async function getReport(reportId: string): Promise<Report> {
   return fetchItem(reportId);
 }
 
-// Live submission needs an access token from a future Supabase session.
-// This release does not collect a session, and the token must not come from env config.
+// Live submission sends the Supabase access token from the current session.
+// The token is never read from environment variables.
 export async function createReport(input: ReportInput, accessToken?: string): Promise<Report> {
   if (shouldUseMockData()) {
     return createMockReport(input);

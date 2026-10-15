@@ -8,27 +8,37 @@ import { ReportForm } from "../components/reports/ReportForm";
 import { Button } from "../components/ui/Button";
 import { Screen } from "../components/ui/Screen";
 import { colors, spacing, typography } from "../constants/theme";
+import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import { shouldUseMockData } from "../services/config";
+import { ReportServiceError } from "../services/errors";
 import { createReport } from "../services/reports";
 import type { Report, ReportInput } from "../types/report";
+
+const SESSION_EXPIRED_MESSAGE =
+  "Your session has expired. Sign in again to submit this report.";
 
 export function SubmitReportScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "SubmitReport">>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { session } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<Report | null>(null);
 
   async function handleSubmit(input: ReportInput) {
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      setServerError(SESSION_EXPIRED_MESSAGE);
+      return;
+    }
+
     setSubmitting(true);
     setServerError(null);
     try {
-      setSubmitted(await createReport(input));
+      setSubmitted(await createReport(input, accessToken));
     } catch (caught) {
-      setServerError(
-        caught instanceof Error ? caught.message : "The report could not be submitted.",
-      );
+      setServerError(submissionMessage(caught));
     } finally {
       setSubmitting(false);
     }
@@ -63,18 +73,41 @@ export function SubmitReportScreen() {
     );
   }
 
+  if (!session?.access_token) {
+    return (
+      <Screen scroll>
+        <View style={styles.success}>
+          <Text accessibilityRole="header" style={styles.title}>
+            Sign in required
+          </Text>
+          <Text accessibilityRole="alert" style={styles.body}>
+            {SESSION_EXPIRED_MESSAGE}
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen scroll>
       <ReportForm
         initialType={route.params.type}
         submitting={submitting}
         serverError={serverError}
-        onSubmit={(input) => {
-          void handleSubmit(input);
-        }}
+        onSubmit={handleSubmit}
       />
     </Screen>
   );
+}
+
+function submissionMessage(caught: unknown): string {
+  if (caught instanceof ReportServiceError && caught.kind === "authentication") {
+    return SESSION_EXPIRED_MESSAGE;
+  }
+  if (caught instanceof Error && caught.message) {
+    return caught.message;
+  }
+  return "The report could not be submitted.";
 }
 
 const styles = StyleSheet.create({
