@@ -62,44 +62,46 @@ export function ReportDetailsScreen() {
   const dateLabel = report.type === "lost" ? "Date lost" : "Date found";
 
   return (
-    <Screen scroll>
-      <View style={styles.card}>
-        <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} />
-        <Text accessibilityRole="header" style={styles.title}>
-          {report.title}
-        </Text>
-        <View style={styles.badges}>
-          <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
-          <StatusBadge label={report.category ?? "No category"} tone="neutral" />
-          <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
+    <View style={styles.screen}>
+      <Screen scroll>
+        <View style={styles.card}>
+          <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} />
+          <Text accessibilityRole="header" style={styles.title}>
+            {report.title}
+          </Text>
+          <View style={styles.badges}>
+            <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
+            <StatusBadge label={report.category ?? "No category"} tone="neutral" />
+            <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
+          </View>
+          <Detail label="Description" value={report.description} />
+          <Detail label="Color" value={report.color ?? "Not provided"} />
+          <Detail label="Brand" value={report.brand ?? "Not provided"} />
+          <Detail label="Location" value={report.location ?? "Not provided"} />
+          <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
+          <Detail label="Status" value={statusBadge.label} />
+          <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
         </View>
-        <Detail label="Description" value={report.description} />
-        <Detail label="Color" value={report.color ?? "Not provided"} />
-        <Detail label="Brand" value={report.brand ?? "Not provided"} />
-        <Detail label="Location" value={report.location ?? "Not provided"} />
-        <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
-        <Detail label="Status" value={statusBadge.label} />
-        <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
-      </View>
-      {owner ? (
-        <View style={styles.actions}>
-          <Button
-            label="Edit report"
-            variant="outline"
-            onPress={() => navigation.navigate("EditReport", { reportId: report.id })}
-            disabled={deleting}
-          />
-          <Button
-            label="Delete report"
-            variant="destructive"
-            onPress={() => {
-              setDeleteError(null);
-              setConfirming(true);
-            }}
-            disabled={deleting}
-          />
-        </View>
-      ) : null}
+        {owner ? (
+          <View style={styles.actions}>
+            <Button
+              label="Edit report"
+              variant="outline"
+              onPress={() => navigation.navigate("EditReport", { reportId: report.id })}
+              disabled={deleting}
+            />
+            <Button
+              label="Delete report"
+              variant="destructive"
+              onPress={() => {
+                setDeleteError(null);
+                setConfirming(true);
+              }}
+              disabled={deleting}
+            />
+          </View>
+        ) : null}
+      </Screen>
       <ConfirmDialog
         visible={confirming}
         title="Delete this report?"
@@ -117,7 +119,7 @@ export function ReportDetailsScreen() {
           void confirmDelete();
         }}
       />
-    </Screen>
+    </View>
   );
 }
 
@@ -131,6 +133,9 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   card: {
     backgroundColor: colors.surface,
     borderWidth: 1,

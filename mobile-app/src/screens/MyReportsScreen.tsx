@@ -53,8 +53,9 @@ export function MyReportsScreen() {
   }
 
   return (
-    <>
+    <View style={styles.screen}>
       <FlatList
+        style={styles.listView}
         data={mine}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
@@ -125,11 +126,17 @@ export function MyReportsScreen() {
           void confirmDelete();
         }}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  listView: {
+    flex: 1,
+  },
   list: {
     padding: spacing.md,
     gap: spacing.sm + spacing.xs,

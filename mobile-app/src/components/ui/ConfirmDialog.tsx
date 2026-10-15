@@ -49,7 +49,15 @@ export function ConfirmDialog({
 
 const styles = StyleSheet.create({
   backdrop: {
-    gap: spacing.sm,
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 2,
+    justifyContent: "center",
+    padding: spacing.md,
+    backgroundColor: "rgba(27, 36, 48, 0.4)",
   },
   dialog: {
     backgroundColor: colors.surface,
