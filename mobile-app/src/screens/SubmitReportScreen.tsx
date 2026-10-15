@@ -36,7 +36,7 @@ export function SubmitReportScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      setSubmitted(await createReport(input, accessToken));
+      setSubmitted(await createReport(input, accessToken, session.user.id));
     } catch (caught) {
       setServerError(submissionMessage(caught));
     } finally {
@@ -62,7 +62,9 @@ export function SubmitReportScreen() {
         </View>
         <Button
           label="View this report"
-          onPress={() => navigation.navigate("ReportDetails", { reportId: submitted.id })}
+          onPress={() =>
+            navigation.navigate("ReportDetails", { reportId: submitted.id, origin: "browse" })
+          }
         />
         <Button
           label="Browse reports"

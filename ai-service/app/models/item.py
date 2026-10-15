@@ -29,6 +29,10 @@ class ItemCreate(BaseModel):
     event_date: datetime | None = None
 
 
+class ItemUpdate(ItemCreate):
+    pass
+
+
 class ItemOut(BaseModel):
     id: UUID
     user_id: UUID

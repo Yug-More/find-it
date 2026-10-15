@@ -32,8 +32,13 @@ export function HomeScreen() {
         />
         <Button
           label="Browse reports"
-          variant="text"
+          variant="outline"
           onPress={() => navigation.navigate("Reports")}
+        />
+        <Button
+          label="My reports"
+          variant="outline"
+          onPress={() => navigation.navigate("MyReports")}
         />
         <Button label="Profile" variant="text" onPress={() => navigation.navigate("Profile")} />
       </View>

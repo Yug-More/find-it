@@ -1,19 +1,48 @@
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import { ReportImage } from "../components/reports/ReportImage";
+import { Button } from "../components/ui/Button";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { Screen } from "../components/ui/Screen";
 import { reportStatusBadge, reportTypeBadge, StatusBadge } from "../components/ui/StatusBadge";
 import { colors, radius, spacing, typography } from "../constants/theme";
+import { useAuth } from "../context/AuthContext";
 import { useReport } from "../hooks/useReports";
 import type { RootStackParamList } from "../navigation/types";
+import { deleteReport } from "../services/reports";
 import { formatCreatedAt, formatItemDate } from "../utils/dates";
+import { ownsReport } from "../utils/ownership";
 
 export function ReportDetailsScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "ReportDetails">>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { session, user } = useAuth();
   const { report, loading, error, retry } = useReport(route.params.reportId);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const owner = report ? ownsReport(user?.id, report.userId) : false;
+
+  async function confirmDelete() {
+    if (!report || deleting) {
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteReport(report.id, session?.access_token, user?.id);
+      navigation.navigate(route.params.origin === "mine" ? "MyReports" : "Reports");
+    } catch (caught) {
+      setDeleteError(caught instanceof Error ? caught.message : "The report could not be deleted.");
+      setDeleting(false);
+    }
+  }
 
   if (loading) {
     return <LoadingState message="Loading report" />;
@@ -35,21 +64,59 @@ export function ReportDetailsScreen() {
   return (
     <Screen scroll>
       <View style={styles.card}>
+        <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} />
         <Text accessibilityRole="header" style={styles.title}>
           {report.title}
         </Text>
         <View style={styles.badges}>
           <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
+          <StatusBadge label={report.category ?? "No category"} tone="neutral" />
           <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
         </View>
-        <Detail label="Category" value={report.category ?? "Not provided"} />
         <Detail label="Description" value={report.description} />
         <Detail label="Color" value={report.color ?? "Not provided"} />
+        <Detail label="Brand" value={report.brand ?? "Not provided"} />
         <Detail label="Location" value={report.location ?? "Not provided"} />
         <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
         <Detail label="Status" value={statusBadge.label} />
         <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
       </View>
+      {owner ? (
+        <View style={styles.actions}>
+          <Button
+            label="Edit report"
+            variant="outline"
+            onPress={() => navigation.navigate("EditReport", { reportId: report.id })}
+            disabled={deleting}
+          />
+          <Button
+            label="Delete report"
+            variant="destructive"
+            onPress={() => {
+              setDeleteError(null);
+              setConfirming(true);
+            }}
+            disabled={deleting}
+          />
+        </View>
+      ) : null}
+      <ConfirmDialog
+        visible={confirming}
+        title="Delete this report?"
+        message={`Delete ${report.title}? This removes the report from FindIt.`}
+        confirmLabel={deleting ? "Deleting" : "Delete"}
+        busy={deleting}
+        error={deleteError}
+        onCancel={() => {
+          if (!deleting) {
+            setConfirming(false);
+            setDeleteError(null);
+          }
+        }}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+      />
     </Screen>
   );
 }
@@ -91,5 +158,8 @@ const styles = StyleSheet.create({
   detailValue: {
     ...typography.body,
     color: colors.text,
+  },
+  actions: {
+    gap: spacing.sm,
   },
 });

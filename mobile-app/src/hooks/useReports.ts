@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { getReport, listReports } from "../services/reports";
 import type { Report } from "../types/report";
@@ -22,6 +23,8 @@ export function useReports() {
     setRefreshing(false);
   }, []);
 
+  const hasLoaded = useRef(false);
+
   const load = useCallback(
     (mode: "initial" | "refresh") => {
       if (mode === "refresh") {
@@ -35,25 +38,33 @@ export function useReports() {
     [applyError, applyResult],
   );
 
-  useEffect(() => {
-    let active = true;
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      if (hasLoaded.current) {
+        setRefreshing(true);
+      }
 
-    listReports()
-      .then((next) => {
-        if (active) {
+      listReports()
+        .then((next) => {
+          if (!active) {
+            return;
+          }
+          hasLoaded.current = true;
           applyResult(next);
-        }
-      })
-      .catch((caught: unknown) => {
-        if (active) {
+        })
+        .catch((caught: unknown) => {
+          if (!active) {
+            return;
+          }
           applyError(caught);
-        }
-      });
+        });
 
-    return () => {
-      active = false;
-    };
-  }, [applyError, applyResult]);
+      return () => {
+        active = false;
+      };
+    }, [applyError, applyResult]),
+  );
 
   return {
     reports,
@@ -86,31 +97,33 @@ export function useReport(reportId: string) {
       });
   }, [reportId]);
 
-  useEffect(() => {
-    let active = true;
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    getReport(reportId)
-      .then((next) => {
-        if (!active) {
-          return;
-        }
-        setReport(next);
-        setError(null);
-        setLoading(false);
-      })
-      .catch((caught: unknown) => {
-        if (!active) {
-          return;
-        }
-        setReport(null);
-        setError(messageFrom(caught, "This report could not be loaded."));
-        setLoading(false);
-      });
+      getReport(reportId)
+        .then((next) => {
+          if (!active) {
+            return;
+          }
+          setReport(next);
+          setError(null);
+          setLoading(false);
+        })
+        .catch((caught: unknown) => {
+          if (!active) {
+            return;
+          }
+          setReport(null);
+          setError(messageFrom(caught, "This report could not be loaded."));
+          setLoading(false);
+        });
 
-    return () => {
-      active = false;
-    };
-  }, [reportId]);
+      return () => {
+        active = false;
+      };
+    }, [reportId]),
+  );
 
   return { report, loading, error, retry: load };
 }

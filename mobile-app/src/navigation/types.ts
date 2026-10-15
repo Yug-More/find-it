@@ -7,6 +7,8 @@ export type RootStackParamList = {
   Home: undefined;
   SubmitReport: { type: ItemType };
   Reports: undefined;
-  ReportDetails: { reportId: string };
+  ReportDetails: { reportId: string; origin?: "browse" | "mine" };
+  MyReports: undefined;
+  EditReport: { reportId: string };
   Profile: undefined;
 };
