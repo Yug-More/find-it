@@ -60,10 +60,12 @@ const styles = StyleSheet.create({
   name: {
     ...typography.title,
     color: colors.text,
+    flexShrink: 1,
   },
   email: {
     ...typography.body,
     color: colors.textSecondary,
+    flexShrink: 1,
   },
   error: {
     ...typography.body,

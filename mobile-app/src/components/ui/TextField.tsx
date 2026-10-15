@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 
 import { colors, radius, spacing, touchTarget, typography } from "../../constants/theme";
 
@@ -16,6 +17,7 @@ type Props = {
   textContentType?: TextInputProps["textContentType"];
   keyboardType?: TextInputProps["keyboardType"];
   secureTextEntry?: boolean;
+  canReveal?: boolean;
   editable?: boolean;
   maxLength?: number;
 };
@@ -34,14 +36,30 @@ export function TextField({
   textContentType,
   keyboardType,
   secureTextEntry = false,
+  canReveal = false,
   editable = true,
   maxLength,
 }: Props) {
+  const [revealed, setRevealed] = useState(false);
+  const hidden = secureTextEntry && !revealed;
+
   return (
     <View style={styles.field}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
+        <View style={styles.labelActions}>
+          {canReveal ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={revealed ? "Hide password" : "Show password"}
+              onPress={() => setRevealed((current) => !current)}
+              hitSlop={8}
+            >
+              <Text style={styles.reveal}>{revealed ? "Hide" : "Show"}</Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
+        </View>
       </View>
       <TextInput
         value={value}
@@ -54,7 +72,7 @@ export function TextField({
         autoComplete={autoComplete}
         textContentType={textContentType}
         keyboardType={keyboardType}
-        secureTextEntry={secureTextEntry}
+        secureTextEntry={hidden}
         accessibilityLabel={label}
         accessibilityHint={required ? "Required" : "Optional"}
         textAlignVertical={multiline ? "top" : "center"}
@@ -84,6 +102,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "baseline",
     gap: spacing.sm,
+  },
+  labelActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  reveal: {
+    ...typography.label,
+    color: colors.accent,
   },
   label: {
     ...typography.label,

@@ -98,6 +98,7 @@ export function SignInScreen() {
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry
+        canReveal
         autoComplete="password"
         textContentType="password"
         editable={!submitting}

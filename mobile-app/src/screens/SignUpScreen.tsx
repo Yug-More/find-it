@@ -132,6 +132,7 @@ export function SignUpScreen() {
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry
+        canReveal
         autoComplete="new-password"
         textContentType="newPassword"
         editable={!submitting}
@@ -145,6 +146,7 @@ export function SignUpScreen() {
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry
+        canReveal
         autoComplete="new-password"
         textContentType="newPassword"
         editable={!submitting}
