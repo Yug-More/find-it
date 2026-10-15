@@ -164,4 +164,3 @@ The app does not create the bucket. If the bucket or a policy is missing, photo 
 - Replacing a photo uploads a new file and leaves the previous object in storage.
 - Create and edit fail when the API cannot reach Gemini or Supabase.
 - Matching, claims, and notifications are not in this app.
-- Expo Doctor may report that `expo` and `jest-expo` are a patch behind the newest SDK 57 release. This project keeps the versions already used on main.
