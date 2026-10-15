@@ -39,6 +39,8 @@ describe("mapReport", () => {
       description: "A blue notebook left in a study room.",
       category: "Other",
       color: null,
+      brand: null,
+      image_url: null,
       location: "King Library",
       event_date: "2026-01-15T00:00:00.000Z",
     });

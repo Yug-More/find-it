@@ -1,19 +1,26 @@
+import { useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ReportCard } from "../components/reports/ReportCard";
+import { ReportFiltersBar } from "../components/reports/ReportFiltersBar";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
-import { colors, spacing, typography } from "../constants/theme";
+import { colors, layout, spacing, typography } from "../constants/theme";
 import { useReports } from "../hooks/useReports";
 import type { RootStackParamList } from "../navigation/types";
+import type { ReportFilters } from "../types/report";
+import { activeFilterCount, EMPTY_FILTERS, filterReports } from "../utils/filters";
 
 export function ReportsListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { reports, loading, refreshing, error, retry, refresh } = useReports();
+  const [filters, setFilters] = useState<ReportFilters>(EMPTY_FILTERS);
+  const visible = filterReports(reports, filters);
+  const filtering = activeFilterCount(filters) > 0;
 
   if (loading && !refreshing) {
     return <LoadingState message="Loading reports" />;
@@ -25,7 +32,8 @@ export function ReportsListScreen() {
 
   return (
     <FlatList
-      data={reports}
+      style={styles.screen}
+      data={visible}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.list}
       refreshControl={
@@ -36,25 +44,35 @@ export function ReportsListScreen() {
         />
       }
       ListHeaderComponent={
-        error ? (
-          <View style={styles.inlineError}>
-            <Text accessibilityRole="alert" style={styles.inlineErrorText}>
-              {error}
-            </Text>
-            <Button label="Try again" variant="text" onPress={() => void refresh()} />
-          </View>
-        ) : null
+        <View>
+          {error ? (
+            <View style={styles.inlineError}>
+              <Text accessibilityRole="alert" style={styles.inlineErrorText}>
+                {error}
+              </Text>
+              <Button label="Try again" variant="text" onPress={() => void refresh()} />
+            </View>
+          ) : null}
+          <ReportFiltersBar filters={filters} resultCount={visible.length} onChange={setFilters} />
+        </View>
       }
       ListEmptyComponent={
-        <EmptyState
-          title="No reports yet"
-          message="Submitted lost and found reports will show up here."
-        />
+        filtering ? (
+          <EmptyState
+            title="No matching reports"
+            message="Try a different search or clear the filters."
+          />
+        ) : (
+          <EmptyState
+            title="No reports yet"
+            message="Submitted lost and found reports will show up here."
+          />
+        )
       }
       renderItem={({ item }) => (
         <ReportCard
           report={item}
-          onPress={() => navigation.navigate("ReportDetails", { reportId: item.id })}
+          onPress={() => navigation.navigate("ReportDetails", { reportId: item.id, origin: "browse" })}
         />
       )}
     />
@@ -62,11 +80,17 @@ export function ReportsListScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   list: {
     padding: spacing.md,
     gap: spacing.sm + spacing.xs,
     flexGrow: 1,
-    backgroundColor: colors.background,
+    width: "100%",
+    maxWidth: layout.contentMaxWidth,
+    alignSelf: "center",
   },
   inlineError: {
     gap: spacing.xs,

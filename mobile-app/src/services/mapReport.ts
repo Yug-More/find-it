@@ -54,6 +54,8 @@ export function toItemCreate(input: ReportInput): Record<string, unknown> {
     description: input.description,
     category: input.category,
     color: input.color || null,
+    brand: input.brand || null,
+    image_url: input.imageUrl,
     location: input.location,
     event_date: toEventTimestamp(input.eventDate),
   };

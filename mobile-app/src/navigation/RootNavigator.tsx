@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoadingState } from "../components/ui/LoadingState";
 import { colors, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { EditReportScreen } from "../screens/EditReportScreen";
 import { HomeScreen } from "../screens/HomeScreen";
+import { MyReportsScreen } from "../screens/MyReportsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen";
 import { ReportsListScreen } from "../screens/ReportsListScreen";
@@ -20,6 +22,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const screenOptions = {
   headerStyle: { backgroundColor: colors.surface },
   headerShadowVisible: false,
+  headerBackButtonDisplayMode: "minimal" as const,
   headerTintColor: colors.text,
   headerTitleStyle: {
     fontSize: typography.heading.fontSize,
@@ -80,6 +83,8 @@ function SignedInStack({ reportType }: { reportType: ItemType | null }) {
         component={ReportDetailsScreen}
         options={{ title: "Report" }}
       />
+      <Stack.Screen name="MyReports" component={MyReportsScreen} options={{ title: "My reports" }} />
+      <Stack.Screen name="EditReport" component={EditReportScreen} options={{ title: "Edit report" }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
     </Stack.Navigator>
   );

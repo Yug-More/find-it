@@ -53,21 +53,27 @@ export function WelcomeScreen() {
         />
         <Button
           label="Browse reports"
-          variant="text"
+          variant="outline"
           onPress={() => navigation.navigate("Reports")}
         />
-        <Button
-          label="Sign in"
-          onPress={() => {
-            setPendingReportType(null);
-            navigation.navigate("SignIn");
-          }}
-        />
-        <Button
-          label="Create account"
-          variant="secondary"
-          onPress={() => navigation.navigate("SignUp")}
-        />
+        <View style={styles.accountRow}>
+          <View style={styles.accountAction}>
+            <Button
+              label="Sign in"
+              onPress={() => {
+                setPendingReportType(null);
+                navigation.navigate("SignIn");
+              }}
+            />
+          </View>
+          <View style={styles.accountAction}>
+            <Button
+              label="Create account"
+              variant="outline"
+              onPress={() => navigation.navigate("SignUp")}
+            />
+          </View>
+        </View>
       </View>
     </Screen>
   );
@@ -96,5 +102,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing.sm,
+  },
+  accountRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  accountAction: {
+    flex: 1,
   },
 });

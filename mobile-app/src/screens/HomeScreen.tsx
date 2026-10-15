@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { Button } from "../components/ui/Button";
 import { Screen } from "../components/ui/Screen";
-import { colors, spacing, typography } from "../constants/theme";
+import { colors, radius, spacing, typography } from "../constants/theme";
 import type { RootStackParamList } from "../navigation/types";
 
 export function HomeScreen() {
@@ -30,11 +30,22 @@ export function HomeScreen() {
           variant="secondary"
           onPress={() => navigation.navigate("SubmitReport", { type: "found" })}
         />
-        <Button
-          label="Browse reports"
-          variant="text"
-          onPress={() => navigation.navigate("Reports")}
-        />
+        <View style={styles.row}>
+          <View style={styles.rowItem}>
+            <Button
+              label="Browse reports"
+              variant="outline"
+              onPress={() => navigation.navigate("Reports")}
+            />
+          </View>
+          <View style={styles.rowItem}>
+            <Button
+              label="My reports"
+              variant="outline"
+              onPress={() => navigation.navigate("MyReports")}
+            />
+          </View>
+        </View>
         <Button label="Profile" variant="text" onPress={() => navigation.navigate("Profile")} />
       </View>
       <View style={styles.panel}>
@@ -65,11 +76,18 @@ const styles = StyleSheet.create({
   actions: {
     gap: spacing.sm,
   },
+  row: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  rowItem: {
+    flex: 1,
+  },
   panel: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
   },

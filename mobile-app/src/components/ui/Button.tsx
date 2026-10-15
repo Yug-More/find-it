@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 
 import { colors, radius, spacing, touchTarget, typography } from "../../constants/theme";
 
-type Variant = "primary" | "secondary" | "text";
+type Variant = "primary" | "secondary" | "outline" | "text" | "destructive";
 
 type Props = {
   label: string;
@@ -23,7 +23,9 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
         styles.base,
         variant === "primary" && styles.primary,
         variant === "secondary" && styles.secondary,
+        variant === "outline" && styles.outline,
         variant === "text" && styles.text,
+        variant === "destructive" && styles.destructive,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}
@@ -32,8 +34,8 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
         style={[
           styles.label,
           variant === "primary" && styles.primaryLabel,
-          variant === "secondary" && styles.secondaryLabel,
-          variant === "text" && styles.textLabel,
+          (variant === "secondary" || variant === "outline" || variant === "text") && styles.secondaryLabel,
+          variant === "destructive" && styles.primaryLabel,
         ]}
       >
         {label}
@@ -45,6 +47,7 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
 const styles = StyleSheet.create({
   base: {
     minHeight: touchTarget,
+    width: "100%",
     borderRadius: radius.sm,
     alignItems: "center",
     justifyContent: "center",
@@ -55,12 +58,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   secondary: {
+    backgroundColor: colors.accentMuted,
+  },
+  outline: {
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.border,
   },
   text: {
     backgroundColor: "transparent",
+  },
+  destructive: {
+    backgroundColor: colors.error,
   },
   pressed: {
     opacity: 0.88,
@@ -76,9 +85,6 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   secondaryLabel: {
-    color: colors.accent,
-  },
-  textLabel: {
     color: colors.accent,
   },
 });

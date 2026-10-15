@@ -1,6 +1,7 @@
 export type ReportErrorKind =
   | "configuration"
   | "authentication"
+  | "forbidden"
   | "network"
   | "not_found"
   | "validation";

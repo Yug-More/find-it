@@ -40,3 +40,12 @@ export const typography = {
 } as const;
 
 export const touchTarget = 48;
+export const iconSize = 20;
+
+export const layout = {
+  contentMaxWidth: 560,
+} as const;
+
+export const elevation = {
+  boxShadow: "0px 1px 2px rgba(27, 36, 48, 0.08)",
+} as const;

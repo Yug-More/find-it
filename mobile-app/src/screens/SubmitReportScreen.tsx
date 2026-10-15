@@ -7,7 +7,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ReportForm } from "../components/reports/ReportForm";
 import { Button } from "../components/ui/Button";
 import { Screen } from "../components/ui/Screen";
-import { colors, spacing, typography } from "../constants/theme";
+import { colors, radius, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import { shouldUseMockData } from "../services/config";
@@ -36,7 +36,7 @@ export function SubmitReportScreen() {
     setSubmitting(true);
     setServerError(null);
     try {
-      setSubmitted(await createReport(input, accessToken));
+      setSubmitted(await createReport(input, accessToken, session.user.id));
     } catch (caught) {
       setServerError(submissionMessage(caught));
     } finally {
@@ -62,7 +62,9 @@ export function SubmitReportScreen() {
         </View>
         <Button
           label="View this report"
-          onPress={() => navigation.navigate("ReportDetails", { reportId: submitted.id })}
+          onPress={() =>
+            navigation.navigate("ReportDetails", { reportId: submitted.id, origin: "browse" })
+          }
         />
         <Button
           label="Browse reports"
@@ -113,6 +115,11 @@ function submissionMessage(caught: unknown): string {
 const styles = StyleSheet.create({
   success: {
     gap: spacing.sm,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
   },
   title: {
     ...typography.title,

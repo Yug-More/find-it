@@ -7,8 +7,11 @@ export function sampleInput(overrides: Partial<ReportInput> = {}): ReportInput {
     category: "Other",
     description: "A blue notebook left in a study room.",
     color: "Blue",
+    brand: "",
     location: "King Library",
     eventDate: "2026-01-15",
+    image: null,
+    imageUrl: null,
     ...overrides,
   };
 }

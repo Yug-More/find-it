@@ -213,6 +213,7 @@ describe("authentication flow", () => {
     expect(mockedCreateReport).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Blue notebook", type: "lost" }),
       "session-token",
+      "user-1",
     );
     expect(await view.findByText("Report submitted")).toBeOnTheScreen();
     expect(view.getByRole("button", { name: "View this report" })).toBeOnTheScreen();

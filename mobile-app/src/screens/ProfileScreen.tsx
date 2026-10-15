@@ -27,6 +27,7 @@ export function ProfileScreen() {
   return (
     <Screen scroll>
       <View style={styles.panel}>
+        <Text style={styles.caption}>Signed in</Text>
         <Text accessibilityRole="header" style={styles.name}>
           {fullName ?? "Your account"}
         </Text>
@@ -57,13 +58,19 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
   },
+  caption: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
   name: {
     ...typography.title,
     color: colors.text,
+    flexShrink: 1,
   },
   email: {
     ...typography.body,
     color: colors.textSecondary,
+    flexShrink: 1,
   },
   error: {
     ...typography.body,

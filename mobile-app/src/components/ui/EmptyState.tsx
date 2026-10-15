@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing, typography } from "../../constants/theme";
+import { colors, radius, spacing, typography } from "../../constants/theme";
 
 type Props = {
   title: string;
@@ -20,9 +20,12 @@ export function EmptyState({ title, message }: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
     padding: spacing.lg,
     gap: spacing.sm,
-    alignItems: "flex-start",
   },
   title: {
     ...typography.heading,
