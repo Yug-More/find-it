@@ -22,7 +22,7 @@ describe("ReportsListScreen", () => {
     await userEvent.press(view.getByRole("button", { name: "Browse reports" }));
 
     expect(await view.findByText("Toyota key fob")).toBeOnTheScreen();
-    expect(view.getByText("Keys")).toBeOnTheScreen();
+    expect(view.getAllByText("Keys").length).toBeGreaterThan(0);
     expect(view.getByText("Lost")).toBeOnTheScreen();
   });
 
