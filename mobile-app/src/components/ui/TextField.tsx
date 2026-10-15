@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 
 import { colors, radius, spacing, touchTarget, typography } from "../../constants/theme";
 
@@ -11,6 +11,11 @@ type Props = {
   helper?: string;
   multiline?: boolean;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoCorrect?: boolean;
+  autoComplete?: TextInputProps["autoComplete"];
+  textContentType?: TextInputProps["textContentType"];
+  keyboardType?: TextInputProps["keyboardType"];
+  secureTextEntry?: boolean;
   editable?: boolean;
   maxLength?: number;
 };
@@ -24,6 +29,11 @@ export function TextField({
   helper,
   multiline = false,
   autoCapitalize = "sentences",
+  autoCorrect = true,
+  autoComplete,
+  textContentType,
+  keyboardType,
+  secureTextEntry = false,
   editable = true,
   maxLength,
 }: Props) {
@@ -40,7 +50,11 @@ export function TextField({
         multiline={multiline}
         maxLength={maxLength}
         autoCapitalize={autoCapitalize}
-        autoCorrect
+        autoCorrect={autoCorrect}
+        autoComplete={autoComplete}
+        textContentType={textContentType}
+        keyboardType={keyboardType}
+        secureTextEntry={secureTextEntry}
         accessibilityLabel={label}
         accessibilityHint={required ? "Required" : "Optional"}
         textAlignVertical={multiline ? "top" : "center"}
