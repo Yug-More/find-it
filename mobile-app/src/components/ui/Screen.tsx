@@ -8,16 +8,29 @@ type Props = {
   children: ReactNode;
   scroll?: boolean;
   includeTop?: boolean;
+  includeBottom?: boolean;
+  padded?: boolean;
 };
 
-export function Screen({ children, scroll = false, includeTop = false }: Props) {
-  const edges: Edges = includeTop
-    ? ["top", "right", "bottom", "left"]
-    : ["right", "bottom", "left"];
+export function Screen({
+  children,
+  scroll = false,
+  includeTop = false,
+  includeBottom = true,
+  padded = true,
+}: Props) {
+  const edges: Edges = [
+    ...(includeTop ? (["top"] as const) : []),
+    "right",
+    ...(includeBottom ? (["bottom"] as const) : []),
+    "left",
+  ];
+
+  const contentStyle = [styles.content, padded ? styles.padded : styles.unpadded];
 
   const body = scroll ? (
     <ScrollView
-      contentContainerStyle={styles.content}
+      contentContainerStyle={contentStyle}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       automaticallyAdjustKeyboardInsets
@@ -25,7 +38,7 @@ export function Screen({ children, scroll = false, includeTop = false }: Props) 
       {children}
     </ScrollView>
   ) : (
-    <View style={styles.content}>{children}</View>
+    <View style={contentStyle}>{children}</View>
   );
 
   return (
@@ -45,7 +58,14 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: layout.contentMaxWidth,
     alignSelf: "center",
-    padding: spacing.md,
     gap: spacing.md,
+  },
+  padded: {
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: spacing.md,
+  },
+  unpadded: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 });

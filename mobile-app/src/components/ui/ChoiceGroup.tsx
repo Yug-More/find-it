@@ -30,7 +30,7 @@ export function ChoiceGroup({
     <View style={styles.field}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
+        {required ? <Text style={styles.requirement}>Required</Text> : null}
       </View>
       <View accessibilityRole="radiogroup" style={styles.options}>
         {options.map((option) => {

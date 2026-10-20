@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { colors, radius, spacing, typography } from "../../constants/theme";
 import type { ItemStatus, ItemType } from "../../types/report";
 
-type Tone = "neutral" | "warning" | "success";
+type Tone = "neutral" | "warning" | "success" | "info" | "danger";
 
 type Props = {
   label: string;
@@ -18,7 +18,10 @@ export function StatusBadge({ label, tone }: Props) {
         tone === "warning" && styles.warning,
         tone === "success" && styles.success,
         tone === "neutral" && styles.neutral,
+        tone === "info" && styles.info,
+        tone === "danger" && styles.danger,
       ]}
+      accessibilityLabel={label}
     >
       <Text
         style={[
@@ -26,6 +29,8 @@ export function StatusBadge({ label, tone }: Props) {
           tone === "warning" && styles.warningText,
           tone === "success" && styles.successText,
           tone === "neutral" && styles.neutralText,
+          tone === "info" && styles.infoText,
+          tone === "danger" && styles.dangerText,
         ]}
       >
         {label}
@@ -50,32 +55,46 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: "flex-start",
     borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 3,
     borderWidth: 1,
   },
   warning: {
-    backgroundColor: colors.warningMuted,
-    borderColor: colors.warning,
+    backgroundColor: colors.lostMuted,
+    borderColor: colors.lost,
   },
   success: {
-    backgroundColor: colors.successMuted,
-    borderColor: colors.success,
+    backgroundColor: colors.foundMuted,
+    borderColor: colors.found,
   },
   neutral: {
     backgroundColor: colors.background,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
+  },
+  info: {
+    backgroundColor: colors.infoMuted,
+    borderColor: colors.info,
+  },
+  danger: {
+    backgroundColor: colors.errorMuted,
+    borderColor: colors.error,
   },
   text: {
-    ...typography.label,
+    ...typography.meta,
   },
   warningText: {
-    color: colors.warning,
+    color: colors.lost,
   },
   successText: {
-    color: colors.success,
+    color: colors.found,
   },
   neutralText: {
-    color: colors.text,
+    color: colors.textSecondary,
+  },
+  infoText: {
+    color: colors.info,
+  },
+  dangerText: {
+    color: colors.error,
   },
 });

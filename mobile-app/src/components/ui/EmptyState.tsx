@@ -1,31 +1,37 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, spacing, typography } from "../../constants/theme";
+import { colors, spacing, typography } from "../../constants/theme";
+import { Button } from "./Button";
 
 type Props = {
   title: string;
   message: string;
+  actionLabel?: string;
+  onAction?: () => void;
 };
 
-export function EmptyState({ title, message }: Props) {
+export function EmptyState({ title, message, actionLabel, onAction }: Props) {
   return (
     <View style={styles.container}>
       <Text accessibilityRole="header" style={styles.title}>
         {title}
       </Text>
       <Text style={styles.message}>{message}</Text>
+      {actionLabel && onAction ? (
+        <View style={styles.action}>
+          <Button label={actionLabel} onPress={onAction} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
     gap: spacing.sm,
+    alignItems: "flex-start",
   },
   title: {
     ...typography.heading,
@@ -34,5 +40,9 @@ const styles = StyleSheet.create({
   message: {
     ...typography.body,
     color: colors.textSecondary,
+  },
+  action: {
+    marginTop: spacing.xs,
+    alignSelf: "stretch",
   },
 });
