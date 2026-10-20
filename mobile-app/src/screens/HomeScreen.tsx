@@ -17,7 +17,8 @@ export function HomeScreen() {
           FindIt
         </Text>
         <Text style={styles.description}>
-          Report lost and found items in one place and reconnect people with their belongings.
+          Report lost and found items, review likely matches, and manage ownership claims in one
+          place.
         </Text>
       </View>
       <View style={styles.actions}>
@@ -46,15 +47,42 @@ export function HomeScreen() {
             />
           </View>
         </View>
-        <Button label="Profile" variant="text" onPress={() => navigation.navigate("Profile")} />
+        <View style={styles.row}>
+          <View style={styles.rowItem}>
+            <Button
+              label="Matches"
+              variant="outline"
+              onPress={() => navigation.navigate("Matches")}
+            />
+          </View>
+          <View style={styles.rowItem}>
+            <Button label="Claims" variant="outline" onPress={() => navigation.navigate("Claims")} />
+          </View>
+        </View>
+        <View style={styles.row}>
+          <View style={styles.rowItem}>
+            <Button
+              label="Notifications"
+              variant="text"
+              onPress={() => navigation.navigate("Notifications")}
+            />
+          </View>
+          <View style={styles.rowItem}>
+            <Button
+              label="Profile"
+              variant="text"
+              onPress={() => navigation.navigate("Profile")}
+            />
+          </View>
+        </View>
       </View>
       <View style={styles.panel}>
         <Text accessibilityRole="header" style={styles.panelTitle}>
           How FindIt works
         </Text>
         <Text style={styles.step}>1. Report an item as lost or found.</Text>
-        <Text style={styles.step}>2. Browse reports in one list.</Text>
-        <Text style={styles.step}>3. Open a report to see its details.</Text>
+        <Text style={styles.step}>2. Browse reports and review likely matches.</Text>
+        <Text style={styles.step}>3. Submit or decide ownership claims when needed.</Text>
       </View>
     </Screen>
   );

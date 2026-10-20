@@ -4,14 +4,18 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoadingState } from "../components/ui/LoadingState";
 import { colors, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { ClaimsScreen } from "../screens/ClaimsScreen";
 import { EditReportScreen } from "../screens/EditReportScreen";
 import { HomeScreen } from "../screens/HomeScreen";
+import { MatchesScreen } from "../screens/MatchesScreen";
 import { MyReportsScreen } from "../screens/MyReportsScreen";
+import { NotificationsScreen } from "../screens/NotificationsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen";
 import { ReportsListScreen } from "../screens/ReportsListScreen";
 import { SignInScreen } from "../screens/SignInScreen";
 import { SignUpScreen } from "../screens/SignUpScreen";
+import { SubmitClaimScreen } from "../screens/SubmitClaimScreen";
 import { SubmitReportScreen } from "../screens/SubmitReportScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
 import type { ItemType } from "../types/report";
@@ -85,6 +89,18 @@ function SignedInStack({ reportType }: { reportType: ItemType | null }) {
       />
       <Stack.Screen name="MyReports" component={MyReportsScreen} options={{ title: "My reports" }} />
       <Stack.Screen name="EditReport" component={EditReportScreen} options={{ title: "Edit report" }} />
+      <Stack.Screen name="Matches" component={MatchesScreen} options={{ title: "Matches" }} />
+      <Stack.Screen name="Claims" component={ClaimsScreen} options={{ title: "Claims" }} />
+      <Stack.Screen
+        name="SubmitClaim"
+        component={SubmitClaimScreen}
+        options={{ title: "Submit claim" }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: "Notifications" }}
+      />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
     </Stack.Navigator>
   );

@@ -104,6 +104,16 @@ export function updateMockReport(reportId: string, input: ReportInput, userId: s
   return { ...updated };
 }
 
+export function updateMockReportStatus(reportId: string, status: Report["status"]): Report {
+  const current = reports.find((item) => item.id === reportId);
+  if (!current) {
+    throw new ReportServiceError("That report could not be found.", "not_found");
+  }
+  const updated = { ...current, status };
+  reports = reports.map((item) => (item.id === reportId ? updated : item));
+  return { ...updated };
+}
+
 export function deleteMockReport(reportId: string, userId: string): void {
   const current = reports.find((item) => item.id === reportId);
   if (!current) {

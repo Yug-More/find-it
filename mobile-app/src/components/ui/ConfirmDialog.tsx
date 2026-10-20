@@ -8,6 +8,7 @@ type Props = {
   title: string;
   message: string;
   confirmLabel: string;
+  confirmVariant?: "primary" | "destructive";
   busy?: boolean;
   error?: string | null;
   onConfirm: () => void;
@@ -19,6 +20,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
+  confirmVariant = "destructive",
   busy = false,
   error,
   onConfirm,
@@ -41,7 +43,12 @@ export function ConfirmDialog({
           </Text>
         ) : null}
         <Button label="Cancel" variant="outline" onPress={onCancel} disabled={busy} />
-        <Button label={confirmLabel} variant="destructive" onPress={onConfirm} disabled={busy} />
+        <Button
+          label={confirmLabel}
+          variant={confirmVariant}
+          onPress={onConfirm}
+          disabled={busy}
+        />
       </View>
     </View>
   );

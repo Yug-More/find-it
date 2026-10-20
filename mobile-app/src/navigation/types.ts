@@ -10,5 +10,9 @@ export type RootStackParamList = {
   ReportDetails: { reportId: string; origin?: "browse" | "mine" };
   MyReports: undefined;
   EditReport: { reportId: string };
+  Matches: undefined;
+  Claims: undefined;
+  SubmitClaim: { reportId: string };
+  Notifications: undefined;
   Profile: undefined;
 };
