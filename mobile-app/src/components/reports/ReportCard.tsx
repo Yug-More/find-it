@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-import { colors, elevation, radius, spacing, typography } from "../../constants/theme";
+import { colors, elevation, iconSize, radius, spacing, touchTarget, typography } from "../../constants/theme";
 import type { Report } from "../../types/report";
 import { formatItemDate } from "../../utils/dates";
-import { Button } from "../ui/Button";
 import { reportStatusBadge, reportTypeBadge, StatusBadge } from "../ui/StatusBadge";
 import { ReportImage } from "./ReportImage";
 
@@ -44,20 +44,29 @@ export function ReportCard({ report, onPress, onEdit, onDelete }: Props) {
           <Text style={styles.meta}>{formatItemDate(report.eventDate)}</Text>
         </View>
       </Pressable>
-      <Text style={styles.preview} numberOfLines={2}>
-        {report.description}
-      </Text>
       {onEdit || onDelete ? (
         <View style={styles.actions}>
           {onEdit ? (
-            <View style={styles.action}>
-              <Button label="Edit" variant="outline" onPress={onEdit} />
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit"
+              onPress={onEdit}
+              style={styles.iconAction}
+            >
+              <Ionicons name="create-outline" size={iconSize.md} color={colors.accent} />
+              <Text style={styles.actionLabel}>Edit</Text>
+            </Pressable>
           ) : null}
           {onDelete ? (
-            <View style={styles.action}>
-              <Button label="Delete" variant="destructive" onPress={onDelete} />
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Delete"
+              onPress={onDelete}
+              style={styles.iconAction}
+            >
+              <Ionicons name="trash-outline" size={iconSize.md} color={colors.error} />
+              <Text style={[styles.actionLabel, styles.deleteLabel]}>Delete</Text>
+            </Pressable>
           ) : null}
         </View>
       ) : null}
@@ -71,29 +80,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...elevation,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  action: {
-    flex: 1,
+    overflow: "hidden",
+    ...elevation.soft,
   },
   body: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
+    padding: spacing.md,
   },
   copy: {
     flex: 1,
-    gap: spacing.xs,
+    gap: spacing.xxs,
     minWidth: 0,
   },
   pressed: {
-    opacity: 0.88,
+    backgroundColor: colors.background,
   },
   title: {
     ...typography.heading,
@@ -103,14 +105,31 @@ const styles = StyleSheet.create({
   badges: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm,
+    gap: spacing.xxs,
+    marginTop: 2,
   },
   meta: {
-    ...typography.body,
-    color: colors.text,
-  },
-  preview: {
     ...typography.caption,
     color: colors.textSecondary,
+  },
+  actions: {
+    flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+  },
+  iconAction: {
+    flex: 1,
+    minHeight: touchTarget,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xxs,
+  },
+  actionLabel: {
+    ...typography.label,
+    color: colors.accent,
+  },
+  deleteLabel: {
+    color: colors.error,
   },
 });

@@ -4,19 +4,21 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { Button } from "../components/ui/Button";
+import { Divider } from "../components/ui/Divider";
+import { ListRow } from "../components/ui/ListRow";
 import { Screen } from "../components/ui/Screen";
 import { colors, radius, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import { readFullName } from "../services/auth";
+import { shouldUseMockData } from "../services/config";
 import { resetMockClaims } from "../services/mockClaims";
 import { resetMockNotifications } from "../services/mockNotifications";
 import { resetMockReports } from "../services/mockReports";
-import { shouldUseMockData } from "../services/config";
 
 export function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { user, signOut } = useAuth();
+  const { user, isDemoSession, signOut } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const fullName = readFullName(user);
@@ -38,43 +40,47 @@ export function ProfileScreen() {
   }
 
   return (
-    <Screen scroll>
-      <View style={styles.panel}>
-        <Text style={styles.caption}>Signed in</Text>
+    <Screen includeTop scroll includeBottom={false}>
+      <View style={styles.identity}>
+        <Text style={styles.caption}>{isDemoSession ? "Demo account" : "Signed in"}</Text>
         <Text accessibilityRole="header" style={styles.name}>
           {fullName ?? "Your account"}
         </Text>
-        <Text style={styles.email}>
-          {email || "Email is not available for this account."}
-        </Text>
+        <Text style={styles.email}>{email || "Email is not available for this account."}</Text>
       </View>
-      <View style={styles.shortcuts}>
-        <Button
+
+      <View style={styles.group}>
+        <ListRow
           label="My reports"
-          variant="outline"
+          icon="folder-outline"
           onPress={() => navigation.navigate("MyReports")}
           disabled={submitting}
         />
-        <Button
+        <Divider inset />
+        <ListRow
           label="Claims"
-          variant="outline"
+          icon="shield-checkmark-outline"
           onPress={() => navigation.navigate("Claims")}
           disabled={submitting}
         />
-        <Button
+        <Divider inset />
+        <ListRow
           label="Notifications"
-          variant="outline"
+          icon="notifications-outline"
           onPress={() => navigation.navigate("Notifications")}
           disabled={submitting}
         />
       </View>
+
       {formError ? (
         <Text accessibilityRole="alert" style={styles.error}>
           {formError}
         </Text>
       ) : null}
+
       <Button
         label={submitting ? "Signing out" : "Sign out"}
+        variant="outline"
         onPress={handleSignOut}
         disabled={submitting}
       />
@@ -83,13 +89,9 @@ export function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  panel: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
+  identity: {
+    gap: spacing.xxs,
+    paddingVertical: spacing.sm,
   },
   caption: {
     ...typography.caption,
@@ -105,8 +107,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     flexShrink: 1,
   },
-  shortcuts: {
-    gap: spacing.sm,
+  group: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
   },
   error: {
     ...typography.body,

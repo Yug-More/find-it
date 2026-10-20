@@ -75,8 +75,7 @@ export function MatchesScreen() {
       }
       ListHeaderComponent={
         <Text style={styles.intro}>
-          Matches come from the FindIt API similarity score. The app shows that score and does not
-          invent why two reports look alike.
+          Match confidence is an estimate based on available report details. It is not a guarantee.
         </Text>
       }
       ListEmptyComponent={

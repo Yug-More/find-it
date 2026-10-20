@@ -82,6 +82,8 @@ export function MyReportsScreen() {
           <EmptyState
             title="No reports yet"
             message="Reports you submit will show up here."
+            actionLabel="Report a lost item"
+            onAction={() => navigation.navigate("SubmitReport", { type: "lost" })}
           />
         }
         renderItem={({ item }) => {

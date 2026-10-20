@@ -9,6 +9,7 @@ import { MatchCard } from "../components/matches/MatchCard";
 import { ReportImage } from "../components/reports/ReportImage";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Divider } from "../components/ui/Divider";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { Screen } from "../components/ui/Screen";
@@ -38,8 +39,7 @@ export function ReportDetailsScreen() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [sideError, setSideError] = useState<string | null>(null);
   const owner = report ? ownsReport(user?.id, report.userId) : false;
-  const canClaim =
-    Boolean(session && user && report && report.status === "open" && !owner);
+  const canClaim = Boolean(session && user && report && report.status === "open" && !owner);
 
   const loadSideData = useCallback(async () => {
     if (!report) {
@@ -108,27 +108,38 @@ export function ReportDetailsScreen() {
   return (
     <View style={styles.screen}>
       <Screen scroll>
-        <View style={styles.card}>
-          <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} />
-          <Text accessibilityRole="header" style={styles.title}>
-            {report.title}
-          </Text>
-          <View style={styles.badges}>
-            <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
-            <StatusBadge label={report.category ?? "No category"} tone="neutral" />
-            <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
-          </View>
-          <Detail label="Description" value={report.description} />
-          <View style={styles.pair}>
-            <Detail label="Color" value={report.color ?? "Not provided"} />
-            <Detail label="Brand" value={report.brand ?? "Not provided"} />
-          </View>
-          <Detail label="Location" value={report.location ?? "Not provided"} />
-          <View style={styles.pair}>
-            <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
-            <Detail label="Status" value={statusBadge.label} />
-          </View>
-          <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
+        <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} />
+
+        <View style={styles.badges}>
+          <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
+          <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
+          <StatusBadge label={report.category ?? "No category"} tone="neutral" />
+        </View>
+
+        <Text accessibilityRole="header" style={styles.title}>
+          {report.title}
+        </Text>
+
+        <View style={styles.metaBlock}>
+          <MetaRow label="Location" value={report.location ?? "Not provided"} />
+          <Divider />
+          <MetaRow label={dateLabel} value={formatItemDate(report.eventDate)} />
+          <Divider />
+          <MetaRow label="Submitted" value={formatCreatedAt(report.createdAt)} />
+          {(report.color || report.brand) && (
+            <>
+              <Divider />
+              <MetaRow
+                label="Details"
+                value={[report.color, report.brand].filter(Boolean).join(" · ") || "Not provided"}
+              />
+            </>
+          )}
+        </View>
+
+        <View style={styles.descriptionBlock}>
+          <Text style={styles.descriptionLabel}>Description</Text>
+          <Text style={styles.description}>{report.description}</Text>
         </View>
 
         {canClaim ? (
@@ -140,7 +151,7 @@ export function ReportDetailsScreen() {
         ) : null}
 
         {owner ? (
-          <View style={styles.actions}>
+          <View style={styles.ownerActions}>
             <Button
               label="Edit report"
               variant="outline"
@@ -159,7 +170,10 @@ export function ReportDetailsScreen() {
           </View>
         ) : null}
 
-        <SectionHeading title="Possible matches" />
+        <SectionHeading
+          title="Possible matches"
+          subtitle="Match confidence is an estimate based on available report details."
+        />
         {sideError ? (
           <Text accessibilityRole="alert" style={styles.sideError}>
             {sideError}
@@ -224,11 +238,11 @@ export function ReportDetailsScreen() {
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.detail}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+    <View style={styles.metaRow}>
+      <Text style={styles.metaLabel}>{label}</Text>
+      <Text style={styles.metaValue}>{value}</Text>
     </View>
   );
 }
@@ -237,45 +251,49 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
+  badges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
   title: {
     ...typography.title,
     color: colors.text,
     flexShrink: 1,
   },
-  badges: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+  metaBlock: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
   },
-  pair: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
+  metaRow: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: 2,
   },
-  detail: {
-    flexGrow: 1,
-    flexBasis: 140,
-    minWidth: 140,
-    gap: spacing.xs,
-  },
-  detailLabel: {
-    ...typography.label,
+  metaLabel: {
+    ...typography.caption,
     color: colors.textSecondary,
   },
-  detailValue: {
+  metaValue: {
     ...typography.body,
     color: colors.text,
     flexShrink: 1,
   },
-  actions: {
+  descriptionBlock: {
+    gap: spacing.xxs,
+  },
+  descriptionLabel: {
+    ...typography.label,
+    color: colors.textSecondary,
+  },
+  description: {
+    ...typography.body,
+    color: colors.text,
+  },
+  ownerActions: {
     gap: spacing.sm,
   },
   stack: {
