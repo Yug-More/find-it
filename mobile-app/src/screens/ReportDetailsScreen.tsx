@@ -1,21 +1,28 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import { ClaimCard } from "../components/claims/ClaimCard";
+import { MatchCard } from "../components/matches/MatchCard";
 import { ReportImage } from "../components/reports/ReportImage";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { Screen } from "../components/ui/Screen";
+import { SectionHeading } from "../components/ui/SectionHeading";
 import { reportStatusBadge, reportTypeBadge, StatusBadge } from "../components/ui/StatusBadge";
 import { colors, radius, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import { useReport } from "../hooks/useReports";
 import type { RootStackParamList } from "../navigation/types";
+import { listClaimsForItem } from "../services/claims";
+import { listMatchesForReport } from "../services/matches";
 import { deleteReport } from "../services/reports";
+import type { Claim } from "../types/claim";
+import type { MatchResult } from "../types/match";
 import { formatCreatedAt, formatItemDate } from "../utils/dates";
 import { ownsReport } from "../utils/ownership";
 
@@ -27,7 +34,44 @@ export function ReportDetailsScreen() {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [sideError, setSideError] = useState<string | null>(null);
   const owner = report ? ownsReport(user?.id, report.userId) : false;
+  const canClaim =
+    Boolean(session && user && report && report.status === "open" && !owner);
+
+  const loadSideData = useCallback(async () => {
+    if (!report) {
+      return;
+    }
+    setSideError(null);
+    try {
+      const nextMatches = await listMatchesForReport(report.id);
+      setMatches(
+        nextMatches.map((match) => ({
+          ...match,
+          sourceReportId: report.id,
+          sourceTitle: report.title,
+        })),
+      );
+      if (owner && user?.id) {
+        setClaims(await listClaimsForItem(report.id, session?.access_token, user.id));
+      } else {
+        setClaims([]);
+      }
+    } catch (caught) {
+      setSideError(caught instanceof Error ? caught.message : "Related data could not be loaded.");
+    }
+  }, [owner, report, session, user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (report) {
+        void loadSideData();
+      }
+    }, [loadSideData, report]),
+  );
 
   async function confirmDelete() {
     if (!report || deleting) {
@@ -74,18 +118,27 @@ export function ReportDetailsScreen() {
             <StatusBadge label={report.category ?? "No category"} tone="neutral" />
             <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
           </View>
-        <Detail label="Description" value={report.description} />
-        <View style={styles.pair}>
-          <Detail label="Color" value={report.color ?? "Not provided"} />
-          <Detail label="Brand" value={report.brand ?? "Not provided"} />
+          <Detail label="Description" value={report.description} />
+          <View style={styles.pair}>
+            <Detail label="Color" value={report.color ?? "Not provided"} />
+            <Detail label="Brand" value={report.brand ?? "Not provided"} />
+          </View>
+          <Detail label="Location" value={report.location ?? "Not provided"} />
+          <View style={styles.pair}>
+            <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
+            <Detail label="Status" value={statusBadge.label} />
+          </View>
+          <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
         </View>
-        <Detail label="Location" value={report.location ?? "Not provided"} />
-        <View style={styles.pair}>
-          <Detail label={dateLabel} value={formatItemDate(report.eventDate)} />
-          <Detail label="Status" value={statusBadge.label} />
-        </View>
-        <Detail label="Submitted" value={formatCreatedAt(report.createdAt)} />
-        </View>
+
+        {canClaim ? (
+          <Button
+            label="Claim this item"
+            onPress={() => navigation.navigate("SubmitClaim", { reportId: report.id })}
+            disabled={deleting}
+          />
+        ) : null}
+
         {owner ? (
           <View style={styles.actions}>
             <Button
@@ -104,6 +157,50 @@ export function ReportDetailsScreen() {
               disabled={deleting}
             />
           </View>
+        ) : null}
+
+        <SectionHeading title="Possible matches" />
+        {sideError ? (
+          <Text accessibilityRole="alert" style={styles.sideError}>
+            {sideError}
+          </Text>
+        ) : null}
+        {matches.length === 0 ? (
+          <Text style={styles.emptyNote}>No similar reports are available for this item yet.</Text>
+        ) : (
+          <View style={styles.stack}>
+            {matches.map((match) => (
+              <MatchCard
+                key={`${match.sourceReportId}-${match.report.id}`}
+                match={match}
+                onPress={() =>
+                  navigation.push("ReportDetails", {
+                    reportId: match.report.id,
+                    origin: route.params.origin,
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
+
+        {owner ? (
+          <>
+            <SectionHeading title="Claims" />
+            {claims.length === 0 ? (
+              <Text style={styles.emptyNote}>No claims have been submitted for this report.</Text>
+            ) : (
+              <View style={styles.stack}>
+                {claims.map((claim) => (
+                  <ClaimCard
+                    key={claim.id}
+                    claim={{ ...claim, itemTitle: report.title }}
+                    onOpenReport={() => navigation.navigate("Claims")}
+                  />
+                ))}
+              </View>
+            )}
+          </>
         ) : null}
       </Screen>
       <ConfirmDialog
@@ -180,5 +277,16 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing.sm,
+  },
+  stack: {
+    gap: spacing.sm,
+  },
+  emptyNote: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  sideError: {
+    ...typography.body,
+    color: colors.error,
   },
 });

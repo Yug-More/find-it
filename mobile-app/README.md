@@ -1,8 +1,6 @@
 # find-it/mobile-app
 
-React Native client for FindIt. Sprint 2 covers accounts, report photos, search and filters, My Reports, and editing or deleting a report you created.
-
-Image search, matching, claims, notifications, and admin tools are later work.
+React Native client for FindIt. The app covers accounts, report photos, search and filters, My Reports, editing and deleting owned reports, match review, ownership claims, and mock notifications.
 
 ## Stack
 
@@ -19,7 +17,7 @@ Image search, matching, claims, notifications, and admin tools are later work.
 - A Supabase project with the FindIt schema applied, when you want real sign-in
 - The `report-images` Storage bucket, when you want real photo upload
 
-The FastAPI service is not required while sample data is on. Browsing reports also works before Supabase is configured. Submitting, editing, or deleting a report needs an account.
+The FastAPI service is not required while sample data is on. Browsing reports also works before Supabase is configured. Submitting, editing, deleting, claiming, and reviewing live matches need an account and API configuration as described below.
 
 ## Install
 
@@ -54,6 +52,7 @@ npm test -- --runInBand
 npm run lint
 npm run typecheck
 npx expo-doctor
+npx expo export --platform web
 ```
 
 ## Environment
@@ -85,39 +84,55 @@ The signed-in access token comes from the Supabase session. The app does not rea
 
 Sign-up collects a full name, email, password, and password confirmation. The full name is stored as `full_name` on the Supabase user so the database trigger can create a profile row.
 
-Sign-in collects email and password. The password fields can be shown or hidden. The session is saved with AsyncStorage and restored when the app starts. Sign out clears that session.
+Sign-in collects email and password. The password fields can be shown or hidden. The session is saved with AsyncStorage and restored when the app starts. Sign out clears that session and resets mock report, claim, and notification data when mock mode is on.
 
-New passwords need at least 8 characters. If email confirmation is turned on in Supabase, the app asks the user to check their email before signing in.
+Signed-out users can open Welcome, Sign in, Create account, and the public reports list. Reporting a lost or found item sends them to Sign in. After they sign in, the app opens the report they were trying to submit.
 
-Signed-out users can open Welcome, Sign in, Create account, and the public reports list. Reporting a lost or found item sends them to Sign in and explains that an account is required. After they sign in, the app opens the report they were trying to submit.
-
-Signed-in users can open Home, Submit report, Reports, Report details, My Reports, Edit report, and Profile.
+Signed-in users can open Home, Submit report, Reports, Report details, My Reports, Edit report, Matches, Claims, Submit claim, Notifications, and Profile.
 
 ## Mock mode
 
 `EXPO_PUBLIC_USE_MOCK` defaults to true. Leave it true for local UI work and tests.
 
-In mock mode the form, list, details, search, filters, My Reports, edit, and delete screens use sample data on the device. A selected photo is kept as a local preview and is not uploaded. Sample reports stay in memory until the app reloads.
+In mock mode the form, list, details, search, filters, My Reports, edit, delete, matches, claims, and notifications screens use sample data on the device. A selected photo is kept as a local preview and is not uploaded. Sample data stays in memory until the app reloads or the user signs out.
 
-The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports and the owner buttons can be checked.
+The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports, owner buttons, matches, and claims can be checked.
 
-## Real API mode
+## Real API integrations
 
 Set `EXPO_PUBLIC_USE_MOCK=false` and point `EXPO_PUBLIC_API_URL` at a running `ai-service`.
 
-The client uses these item routes:
+The client uses these routes:
 
-- `GET /items`
-- `GET /items/{id}`
-- `POST /items`
-- `PATCH /items/{id}`
-- `DELETE /items/{id}`
+| Method | Path | Use in the app |
+| --- | --- | --- |
+| `GET` | `/items` | Browse reports and build My Reports / Matches / Claims lists |
+| `GET` | `/items/{id}` | Report details |
+| `POST` | `/items` | Submit a report |
+| `PATCH` | `/items/{id}` | Edit an owned report |
+| `DELETE` | `/items/{id}` | Delete an owned report |
+| `GET` | `/items/{id}/matches` | Match cards and the Matches screen |
+| `POST` | `/items/{id}/claims` | Submit an ownership claim |
+| `GET` | `/items/{id}/claims` | Owner claim review |
+| `PATCH` | `/claims/{id}` | Approve or reject a claim |
 
-Reads do not need a user token. They still need the API and its Supabase configuration. `GET /items` returns open reports and can filter by `type`. Search, category, location, date, and status filters run on the device against that list. A resolved report is not in the live list until the API returns it.
+Reads for browse and details do not need a user token. Protected writes and claim routes send `Authorization: Bearer <supabase-access-token>`.
 
-`POST`, `PATCH`, and `DELETE` send `Authorization: Bearer <supabase-access-token>` from the current session. Signed-out users never call those routes. If the session is missing or the API returns 401, the screen says to sign in again. A 403 means the account does not own the report.
+`GET /items` returns open reports and can filter by `type`. Search, category, location, date, and status filters run on the device against that list. A resolved report is not in the live list until the API returns it.
 
-Create and edit ask the API to build a Gemini embedding before it saves the item. This app only shows success when the server returns the saved report. If backend Supabase or Gemini configuration is missing, the request fails with the server message. That setup lives in `ai-service`, not in the mobile app.
+Match confidence is the API `similarity` value shown as a percentage. The app does not invent match reasons.
+
+Create and edit ask the API to build a Gemini embedding before it saves the item. Claim approval asks the API to mark the item resolved.
+
+## Mock-only features
+
+- Notifications. There is no notification table or endpoint yet. Mock mode shows sample match and claim updates on the device. Live mode shows an empty notifications list with that limitation explained on screen.
+
+## Required backend contracts still owned by teammates
+
+- Structured ownership-verification questions. The live claim API accepts one `message` field. The app treats that as the ownership explanation and shows optional local writing prompts. A question-and-answer contract would need a backend and schema change.
+- Live notifications for match and claim events.
+- Returning resolved reports from `GET /items` when the product needs them in browse and My Reports.
 
 ## Supabase Storage
 
@@ -163,4 +178,6 @@ The app does not create the bucket. If the bucket or a policy is missing, photo 
 - Live search and filters only see the open reports returned by `GET /items`.
 - Replacing a photo uploads a new file and leaves the previous object in storage.
 - Create and edit fail when the API cannot reach Gemini or Supabase.
-- Matching, claims, and notifications are not in this app.
+- Live Matches loads one match request per owned open report.
+- Live Claims loads owned-report claims only. A claimant history list across all items is not available from the current API.
+- Notifications are mock-only.

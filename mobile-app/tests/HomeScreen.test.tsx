@@ -14,12 +14,14 @@ describe("HomeScreen", () => {
     expect(view.getByText("FindIt")).toBeOnTheScreen();
     expect(
       view.getByText(
-        "Report lost and found items in one place and reconnect people with their belongings.",
+        "Report lost and found items, review likely matches, and manage ownership claims in one place.",
       ),
     ).toBeOnTheScreen();
     expect(view.getByRole("button", { name: "Report a lost item" })).toBeOnTheScreen();
     expect(view.getByRole("button", { name: "Report a found item" })).toBeOnTheScreen();
     expect(view.getByRole("button", { name: "Browse reports" })).toBeOnTheScreen();
+    expect(view.getByRole("button", { name: "Matches" })).toBeOnTheScreen();
+    expect(view.getByRole("button", { name: "Claims" })).toBeOnTheScreen();
     expect(view.getByText("How FindIt works")).toBeOnTheScreen();
   });
 

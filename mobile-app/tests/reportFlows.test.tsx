@@ -74,7 +74,7 @@ describe("Sprint 2 report flows", () => {
     await fireEvent.changeText(name, "Updated key fob");
     await pressButton(view.getByRole("button", { name: "Save changes" }));
 
-    expect(await view.findByText("Updated key fob")).toBeOnTheScreen();
+    expect((await view.findAllByText("Updated key fob")).length).toBeGreaterThan(0);
 
     const update = jest.spyOn(reports, "updateReport").mockRejectedValueOnce(new Error("The report could not be saved."));
     await userEvent.press(view.getByRole("button", { name: "Edit report" }));

@@ -47,7 +47,7 @@ graph TD
 
 ## How to install
 
-> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The mobile app (`mobile-app`) supports sign-up, sign-in, browsing, search and filters, photos, and My Reports. Signed-in users can submit, edit, and delete their own reports. Live create and edit still depend on the backend Supabase and Gemini configuration, and photos need a Supabase Storage bucket.
+> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The mobile app (`mobile-app`) supports sign-up, sign-in, browsing, search and filters, photos, My Reports, match review, and ownership claims. Signed-in users can submit, edit, and delete their own reports, claim another person’s open report, and approve or reject claims on reports they own. Notifications are available in mock mode. Live create and edit still depend on the backend Supabase and Gemini configuration, and photos need a Supabase Storage bucket.
 
 ### Prerequisites
 
@@ -98,7 +98,7 @@ Schema and seed instructions live in [`database/`](database/). Run [`schema.sql`
 
 ### Mobile app (`mobile-app`)
 
-The app includes sign-up, sign-in, a profile screen, report photos, search and filters, My Reports, and edit or delete for the report owner. Sample data is on by default. A signed-in user submits, updates, and deletes through the API with the Supabase access token. `GET /items` currently returns open reports, so the app filters that list on the device.
+The app includes sign-up, sign-in, a profile screen, report photos, search and filters, My Reports, matches, claims, mock notifications, and edit or delete for the report owner. Sample data is on by default. A signed-in user submits, updates, deletes, claims, and reviews matches through the API with the Supabase access token. `GET /items` currently returns open reports, so the app filters that list on the device.
 
 1. From the repository root:
 
