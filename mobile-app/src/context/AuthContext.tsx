@@ -15,6 +15,8 @@ import {
   signOut as signOutAccount,
   signUp as signUpAccount,
 } from "../services/auth";
+import { shouldUseMockData } from "../services/config";
+import { buildDemoSession } from "../services/mockAuth";
 import { getSupabaseClient, getSupabaseConfigError } from "../services/supabase";
 import type { SignInResult, SignOutResult, SignUpInput, SignUpResult } from "../types/auth";
 import type { ItemType } from "../types/report";
@@ -29,7 +31,10 @@ type AuthContextValue = {
   configError: string | null;
   authMessage: string | null;
   pendingReportType: ItemType | null;
+  isDemoSession: boolean;
+  mockMode: boolean;
   setPendingReportType: (type: ItemType | null) => void;
+  enterDemoSession: () => void;
   signUp: (input: SignUpInput) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signOut: () => Promise<SignOutResult>;
@@ -52,16 +57,25 @@ function readAuthStartup(): { configError: string | null; loading: boolean } {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const mockMode = shouldUseMockData();
   const [startup] = useState(readAuthStartup);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(startup.loading);
   const [configError] = useState<string | null>(startup.configError);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
+  const [isDemoSession, setIsDemoSession] = useState(false);
   const hadSession = useRef(false);
   const signingOut = useRef(false);
+  const demoSessionActive = useRef(false);
 
   const applySession = useCallback((next: Session | null) => {
+    // Keep the local mock demo session until the user signs out.
+    if (demoSessionActive.current) {
+      setLoading(false);
+      return;
+    }
+
     if (!next && hadSession.current && !signingOut.current) {
       setAuthMessage(SESSION_EXPIRED_MESSAGE);
     } else if (next || signingOut.current) {
@@ -70,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     signingOut.current = false;
     hadSession.current = Boolean(next);
+    setIsDemoSession(false);
     setSession(next);
     setLoading(false);
   }, []);
@@ -112,11 +127,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [applySession]);
 
+  const enterDemoSession = useCallback(() => {
+    if (!shouldUseMockData()) {
+      return;
+    }
+    const demo = buildDemoSession();
+    demoSessionActive.current = true;
+    hadSession.current = true;
+    setAuthMessage(null);
+    setIsDemoSession(true);
+    setSession(demo);
+    setLoading(false);
+  }, []);
+
   const signIn = useCallback(async (email: string, password: string) => {
     const result = await signInAccount(email, password);
     if (result.ok) {
+      demoSessionActive.current = false;
       hadSession.current = true;
       setAuthMessage(null);
+      setIsDemoSession(false);
       setSession(result.session);
     }
     return result;
@@ -125,8 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (input: SignUpInput) => {
     const result = await signUpAccount(input);
     if (result.ok && result.session) {
+      demoSessionActive.current = false;
       hadSession.current = true;
       setAuthMessage(null);
+      setIsDemoSession(false);
       setSession(result.session);
     }
     return result;
@@ -135,16 +167,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     signingOut.current = true;
     setPendingReportType(null);
+
+    if (isDemoSession) {
+      demoSessionActive.current = false;
+      hadSession.current = false;
+      setAuthMessage(null);
+      setIsDemoSession(false);
+      setSession(null);
+      signingOut.current = false;
+      return { ok: true as const };
+    }
+
     const result = await signOutAccount();
     if (!result.ok) {
       signingOut.current = false;
       return result;
     }
+    demoSessionActive.current = false;
     hadSession.current = false;
     setAuthMessage(null);
+    setIsDemoSession(false);
     setSession(null);
     return result;
-  }, []);
+  }, [isDemoSession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -154,12 +199,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       configError,
       authMessage,
       pendingReportType,
+      isDemoSession,
+      mockMode,
       setPendingReportType,
+      enterDemoSession,
       signUp,
       signIn,
       signOut,
     }),
-    [session, loading, configError, authMessage, pendingReportType, signUp, signIn, signOut],
+    [
+      session,
+      loading,
+      configError,
+      authMessage,
+      pendingReportType,
+      isDemoSession,
+      mockMode,
+      enterDemoSession,
+      signUp,
+      signIn,
+      signOut,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

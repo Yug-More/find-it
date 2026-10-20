@@ -88,13 +88,15 @@ Sign-in collects email and password. The password fields can be shown or hidden.
 
 Signed-out users can open Welcome, Sign in, Create account, and the public reports list. Reporting a lost or found item sends them to Sign in. After they sign in, the app opens the report they were trying to submit.
 
-Signed-in users can open Home, Submit report, Reports, Report details, My Reports, Edit report, Matches, Claims, Submit claim, Notifications, and Profile.
+Signed-in users use a bottom tab bar: Home, Reports, Report, Activity, and Profile. Stack screens cover Submit report, Report details, My Reports, Edit report, Matches, Claims, Submit claim, and Notifications. Activity groups Matches, Claims, and Notifications.
 
 ## Mock mode
 
 `EXPO_PUBLIC_USE_MOCK` defaults to true. Leave it true for local UI work and tests.
 
 In mock mode the form, list, details, search, filters, My Reports, edit, delete, matches, claims, and notifications screens use sample data on the device. A selected photo is kept as a local preview and is not uploaded. Sample data stays in memory until the app reloads or the user signs out.
+
+When mock mode is on, Welcome includes **Continue with demo account**. That loads a local demo session (`demo@findit.local` / `user-1`) so signed-in screens can be reviewed without a live Supabase project. It does nothing when `EXPO_PUBLIC_USE_MOCK=false`.
 
 The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports, owner buttons, matches, and claims can be checked.
 
