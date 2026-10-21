@@ -128,7 +128,7 @@ Create and edit ask the API to build a Gemini embedding before it saves the item
 
 ## Mock-only features
 
-- Notifications. There is no notification table or endpoint yet. Mock mode shows sample match and claim updates on the device. Live mode shows an empty notifications list with that limitation explained on screen.
+- Notifications. The database has a `notifications` table, but there is no notification API endpoint yet. Mock mode shows sample match and claim updates on the device. Live mode shows an empty notifications list with that limitation explained on screen.
 
 ## Required backend contracts still owned by teammates
 
