@@ -1,36 +1,3 @@
-import pytest
-from fastapi.testclient import TestClient
-
-
-@pytest.fixture
-def authed_client():
-    """Provide an authenticated TestClient for the FastAPI app."""
-    import jwt
-    from app.core.config import get_settings
-    from app.main import app
-    settings = get_settings()
-    secret = settings.supabase_jwt_secret
-    user_id = "test-user-auth"
-    payload = {
-        "sub": user_id,
-        "aud": "authenticated",
-        "iat": int(__import__('time').time()),
-        "exp": int(__import__('time').time()) + 3600,
-    }
-    token = jwt.encode(payload, secret, algorithm="HS256")
-    test_client = TestClient(app)
-    test_client.headers["Authorization"] = f"Bearer {token}"
-    test_client.headers["Accept"] = "application/json"
-    return test_client
-
-
-@pytest.fixture
-def unauthenticated_client():
-    """Provide an unauthenticated TestClient for the FastAPI app."""
-    from app.main import app
-    return TestClient(app)
-
-
 class TestAuthAPI:
     """Tests for the /auth API endpoints."""
 

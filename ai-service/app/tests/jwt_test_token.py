@@ -3,7 +3,7 @@ from functools import lru_cache
 
 # Load .env dynamically
 _dot_env_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     '.env'
 )
 if os.path.exists(_dot_env_path):

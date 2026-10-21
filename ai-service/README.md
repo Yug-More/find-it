@@ -40,6 +40,21 @@ The core backend for FindIt, built with FastAPI. Handles users, claims, security
 
    The API is now available at `http://localhost:8000`, with interactive docs at `http://localhost:8000/docs`.
 
+## Testing
+
+```bash
+# Unit/contract suite: fully faked, offline, no credentials required
+pytest
+
+# Integration suite: real Supabase project + real Gemini embeddings
+RUN_INTEGRATION=1 pytest -m integration -v
+```
+
+The integration suite reads credentials from `.env`, creates a temporary item
+through the API (which generates a real embedding), verifies it in Supabase,
+then deletes it. Set `INTEGRATION_TEST_USER_ID` to choose which existing profile
+owns test rows; otherwise the first profile in the project is used.
+
 ## Structure
 
 ```
