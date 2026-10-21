@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-import { colors, radius, spacing, typography } from "../../constants/theme";
+import { colors, iconSize, spacing, typography } from "../../constants/theme";
 import type { AppNotification } from "../../types/notification";
 import { formatCreatedAt } from "../../utils/dates";
 
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export function NotificationRow({ notification, onPress }: Props) {
+  const icon = iconForKind(notification.kind);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -21,14 +24,32 @@ export function NotificationRow({ notification, onPress }: Props) {
         pressed && styles.pressed,
       ]}
     >
+      <View style={[styles.iconWrap, !notification.read && styles.iconUnread]}>
+        <Ionicons name={icon} size={iconSize.md} color={colors.accent} />
+      </View>
       <View style={styles.copy}>
-        <Text style={styles.title}>{notification.title}</Text>
-        <Text style={styles.body}>{notification.body}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {notification.title}
+        </Text>
+        <Text style={styles.body} numberOfLines={2}>
+          {notification.body}
+        </Text>
         <Text style={styles.meta}>{formatCreatedAt(notification.createdAt)}</Text>
       </View>
       {!notification.read ? <View accessibilityLabel="Unread" style={styles.dot} /> : null}
     </Pressable>
   );
+}
+
+function iconForKind(kind: AppNotification["kind"]): keyof typeof Ionicons.glyphMap {
+  switch (kind) {
+    case "match":
+      return "git-compare-outline";
+    case "claim":
+      return "shield-checkmark-outline";
+    default:
+      return "notifications-outline";
+  }
 }
 
 const styles = StyleSheet.create({
@@ -37,39 +58,51 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: "flex-start",
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
   unread: {
-    borderColor: colors.accent,
     backgroundColor: colors.accentMuted,
   },
   pressed: {
     opacity: 0.88,
   },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+    marginTop: 2,
+  },
+  iconUnread: {
+    backgroundColor: colors.surface,
+  },
   copy: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 2,
     minWidth: 0,
   },
   title: {
-    ...typography.heading,
+    ...typography.bodyStrong,
     color: colors.text,
   },
   body: {
-    ...typography.body,
-    color: colors.text,
-  },
-  meta: {
     ...typography.caption,
     color: colors.textSecondary,
   },
+  meta: {
+    ...typography.meta,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginTop: spacing.xs,
     backgroundColor: colors.accent,
   },

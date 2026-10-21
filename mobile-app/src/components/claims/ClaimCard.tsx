@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    ...elevation,
+    ...elevation.soft,
   },
   header: {
     flexDirection: "row",

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ReportCard } from "../components/reports/ReportCard";
 import { ReportFiltersBar } from "../components/reports/ReportFiltersBar";
@@ -31,51 +32,58 @@ export function ReportsListScreen() {
   }
 
   return (
-    <FlatList
-      style={styles.screen}
-      data={visible}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.list}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => void refresh()}
-          tintColor={colors.accent}
-        />
-      }
-      ListHeaderComponent={
-        <View>
-          {error ? (
-            <View style={styles.inlineError}>
-              <Text accessibilityRole="alert" style={styles.inlineErrorText}>
-                {error}
-              </Text>
-              <Button label="Try again" variant="text" onPress={() => void refresh()} />
-            </View>
-          ) : null}
-          <ReportFiltersBar filters={filters} resultCount={visible.length} onChange={setFilters} />
-        </View>
-      }
-      ListEmptyComponent={
-        filtering ? (
-          <EmptyState
-            title="No matching reports"
-            message="Try a different search or clear the filters."
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <FlatList
+        style={styles.listView}
+        data={visible}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void refresh()}
+            tintColor={colors.accent}
           />
-        ) : (
-          <EmptyState
-            title="No reports yet"
-            message="Submitted lost and found reports will show up here."
+        }
+        ListHeaderComponent={
+          <View>
+            <Text accessibilityRole="header" style={styles.screenTitle}>
+              Reports
+            </Text>
+            {error ? (
+              <View style={styles.inlineError}>
+                <Text accessibilityRole="alert" style={styles.inlineErrorText}>
+                  {error}
+                </Text>
+                <Button label="Try again" variant="text" onPress={() => void refresh()} />
+              </View>
+            ) : null}
+            <ReportFiltersBar filters={filters} resultCount={visible.length} onChange={setFilters} />
+          </View>
+        }
+        ListEmptyComponent={
+          filtering ? (
+            <EmptyState
+              title="No matching reports"
+              message="Try a different search or clear the filters."
+            />
+          ) : (
+            <EmptyState
+              title="No reports yet"
+              message="Submitted lost and found reports will show up here."
+            />
+          )
+        }
+        renderItem={({ item }) => (
+          <ReportCard
+            report={item}
+            onPress={() =>
+              navigation.navigate("ReportDetails", { reportId: item.id, origin: "browse" })
+            }
           />
-        )
-      }
-      renderItem={({ item }) => (
-        <ReportCard
-          report={item}
-          onPress={() => navigation.navigate("ReportDetails", { reportId: item.id, origin: "browse" })}
-        />
-      )}
-    />
+        )}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -84,13 +92,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  listView: {
+    flex: 1,
+  },
   list: {
     padding: spacing.md,
-    gap: spacing.sm + spacing.xs,
+    gap: spacing.sm,
     flexGrow: 1,
     width: "100%",
     maxWidth: layout.contentMaxWidth,
     alignSelf: "center",
+  },
+  screenTitle: {
+    ...typography.title,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   inlineError: {
     gap: spacing.xs,

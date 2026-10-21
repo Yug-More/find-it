@@ -1,17 +1,31 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import type { ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, spacing, touchTarget, typography } from "../../constants/theme";
+import {
+  colors,
+  controlHeight,
+  radius,
+  spacing,
+  typography,
+} from "../../constants/theme";
 
-type Variant = "primary" | "secondary" | "outline" | "text" | "destructive";
+type Variant = "primary" | "secondary" | "outline" | "text" | "destructive" | "tertiary";
 
 type Props = {
   label: string;
   onPress: () => void;
   variant?: Variant;
   disabled?: boolean;
+  compact?: boolean;
 };
 
-export function Button({ label, onPress, variant = "primary", disabled = false }: Props) {
+export function Button({
+  label,
+  onPress,
+  variant = "primary",
+  disabled = false,
+  compact = false,
+}: Props) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -21,10 +35,12 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
+        compact && styles.compact,
         variant === "primary" && styles.primary,
         variant === "secondary" && styles.secondary,
         variant === "outline" && styles.outline,
         variant === "text" && styles.text,
+        variant === "tertiary" && styles.tertiary,
         variant === "destructive" && styles.destructive,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
@@ -33,9 +49,13 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
       <Text
         style={[
           styles.label,
-          variant === "primary" && styles.primaryLabel,
-          (variant === "secondary" || variant === "outline" || variant === "text") && styles.secondaryLabel,
-          variant === "destructive" && styles.primaryLabel,
+          (variant === "primary" || variant === "destructive") && styles.onAccentLabel,
+          (variant === "secondary" ||
+            variant === "outline" ||
+            variant === "text" ||
+            variant === "tertiary") &&
+            styles.accentLabel,
+          variant === "tertiary" && styles.tertiaryLabel,
         ]}
       >
         {label}
@@ -44,15 +64,23 @@ export function Button({ label, onPress, variant = "primary", disabled = false }
   );
 }
 
+export function ButtonRow({ children }: { children: ReactNode }) {
+  return <View style={styles.row}>{children}</View>;
+}
+
 const styles = StyleSheet.create({
   base: {
-    minHeight: touchTarget,
+    minHeight: controlHeight,
     width: "100%",
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+  },
+  compact: {
+    minHeight: 40,
+    paddingVertical: spacing.xs,
   },
   primary: {
     backgroundColor: colors.accent,
@@ -61,6 +89,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentMuted,
   },
   outline: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  tertiary: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
@@ -75,16 +108,23 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   label: {
     ...typography.button,
     textAlign: "center",
   },
-  primaryLabel: {
+  onAccentLabel: {
     color: colors.white,
   },
-  secondaryLabel: {
+  accentLabel: {
     color: colors.accent,
+  },
+  tertiaryLabel: {
+    color: colors.text,
+  },
+  row: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
 });

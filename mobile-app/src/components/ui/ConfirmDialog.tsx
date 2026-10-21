@@ -42,13 +42,19 @@ export function ConfirmDialog({
             {error}
           </Text>
         ) : null}
-        <Button label="Cancel" variant="outline" onPress={onCancel} disabled={busy} />
-        <Button
-          label={confirmLabel}
-          variant={confirmVariant}
-          onPress={onConfirm}
-          disabled={busy}
-        />
+        <View style={styles.actions}>
+          <View style={styles.action}>
+            <Button label="Cancel" variant="outline" onPress={onCancel} disabled={busy} />
+          </View>
+          <View style={styles.action}>
+            <Button
+              label={confirmLabel}
+              variant={confirmVariant}
+              onPress={onConfirm}
+              disabled={busy}
+            />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -64,18 +70,18 @@ const styles = StyleSheet.create({
     zIndex: 2,
     justifyContent: "center",
     padding: spacing.md,
-    backgroundColor: "rgba(27, 36, 48, 0.4)",
+    backgroundColor: colors.overlay,
   },
   dialog: {
     width: "100%",
     maxWidth: layout.contentMaxWidth,
     alignSelf: "center",
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   title: {
     ...typography.heading,
@@ -83,10 +89,17 @@ const styles = StyleSheet.create({
   },
   message: {
     ...typography.body,
-    color: colors.text,
+    color: colors.textSecondary,
   },
   error: {
     ...typography.body,
     color: colors.error,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  action: {
+    flex: 1,
   },
 });

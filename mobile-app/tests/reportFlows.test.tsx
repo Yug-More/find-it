@@ -35,6 +35,7 @@ describe("Sprint 2 report flows", () => {
     expect(await view.findByText("Toyota key fob")).toBeOnTheScreen();
     expect(view.getByText("Red water bottle")).toBeOnTheScreen();
 
+    await userEvent.press(view.getByRole("button", { name: "Show filters" }));
     await userEvent.press(view.getByRole("button", { name: "Bottles" }));
     expect(view.queryByText("Toyota key fob")).toBeNull();
     expect(view.getByText("Red water bottle")).toBeOnTheScreen();

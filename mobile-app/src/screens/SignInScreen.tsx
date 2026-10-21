@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -7,7 +7,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button } from "../components/ui/Button";
 import { Screen } from "../components/ui/Screen";
 import { TextField } from "../components/ui/TextField";
-import { colors, typography } from "../constants/theme";
+import { colors, radius, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import type { SignInFieldErrors } from "../types/auth";
@@ -60,7 +60,7 @@ export function SignInScreen() {
 
   return (
     <Screen scroll>
-      <Text style={styles.intro}>Use the email and password for your FindIt account.</Text>
+      <Text style={styles.intro}>Sign in with the email and password for your FindIt account.</Text>
       {notice ? (
         <Text accessibilityRole="alert" style={styles.notice}>
           {notice}
@@ -72,9 +72,11 @@ export function SignInScreen() {
         </Text>
       ) : null}
       {configError ? (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {configError}
-        </Text>
+        <View style={styles.configBox}>
+          <Text accessibilityRole="alert" style={styles.error}>
+            {configError}
+          </Text>
+        </View>
       ) : null}
       <TextField
         label="Email"
@@ -131,6 +133,13 @@ const styles = StyleSheet.create({
   notice: {
     ...typography.body,
     color: colors.warning,
+  },
+  configBox: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   error: {
     ...typography.body,

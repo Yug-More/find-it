@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 
-import { colors, radius, spacing, touchTarget, typography } from "../../constants/theme";
+import {
+  colors,
+  controlHeight,
+  radius,
+  spacing,
+  touchTarget,
+  typography,
+} from "../../constants/theme";
 
 type Props = {
   label: string;
@@ -41,13 +48,14 @@ export function TextField({
   maxLength,
 }: Props) {
   const [revealed, setRevealed] = useState(false);
+  const [focused, setFocused] = useState(false);
   const hidden = secureTextEntry && !revealed;
 
   return (
     <View style={styles.field}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.requirement}>{required ? "Required" : "Optional"}</Text>
+        {required ? <Text style={styles.requirement}>Required</Text> : null}
       </View>
       <View style={styles.inputWrap}>
         <TextInput
@@ -63,12 +71,15 @@ export function TextField({
           keyboardType={keyboardType}
           secureTextEntry={hidden}
           accessibilityLabel={label}
-          accessibilityHint={required ? "Required" : "Optional"}
+          accessibilityHint={required ? "Required" : undefined}
           textAlignVertical={multiline ? "top" : "center"}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={[
             styles.input,
             canReveal && styles.inputWithReveal,
             multiline && styles.multiline,
+            focused && !error && styles.inputFocused,
             error ? styles.inputError : null,
             !editable && styles.inputDisabled,
           ]}
@@ -79,6 +90,7 @@ export function TextField({
             accessibilityLabel={revealed ? "Hide password" : "Show password"}
             onPress={() => setRevealed((current) => !current)}
             style={styles.revealButton}
+            hitSlop={8}
           >
             <Text style={styles.reveal}>{revealed ? "Hide" : "Show"}</Text>
           </Pressable>
@@ -96,7 +108,7 @@ export function TextField({
 
 const styles = StyleSheet.create({
   field: {
-    gap: spacing.xs,
+    gap: spacing.xxs,
   },
   labelRow: {
     flexDirection: "row",
@@ -111,7 +123,7 @@ const styles = StyleSheet.create({
   },
   requirement: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.textMuted,
     flexShrink: 0,
   },
   inputWrap: {
@@ -120,7 +132,7 @@ const styles = StyleSheet.create({
   },
   revealButton: {
     position: "absolute",
-    right: spacing.xs,
+    right: spacing.xxs,
     top: 0,
     bottom: 0,
     minWidth: touchTarget,
@@ -132,21 +144,25 @@ const styles = StyleSheet.create({
     color: colors.accent,
   },
   input: {
-    minHeight: touchTarget,
+    minHeight: controlHeight,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
     backgroundColor: colors.surface,
     color: colors.text,
     ...typography.body,
-    paddingHorizontal: spacing.sm + spacing.xs,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  inputFocused: {
+    borderColor: colors.accent,
   },
   inputWithReveal: {
     paddingRight: touchTarget + spacing.md,
   },
   multiline: {
     minHeight: 120,
+    paddingTop: spacing.sm,
   },
   inputError: {
     borderColor: colors.error,

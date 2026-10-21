@@ -27,12 +27,15 @@ export function MatchCard({ match, onPress }: Props) {
     >
       <ReportImage uri={report.imageUrl} label={`Photo of ${report.title}`} size="thumb" />
       <View style={styles.copy}>
-        <Text style={styles.title} numberOfLines={2}>
-          {report.title}
-        </Text>
-        <View style={styles.badges}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title} numberOfLines={2}>
+            {report.title}
+          </Text>
           <StatusBadge label={confidence} tone={confidenceTone(similarity)} />
+        </View>
+        <View style={styles.badges}>
           <StatusBadge label={typeBadge.label} tone={typeBadge.tone} />
+          <StatusBadge label={report.category ?? "No category"} tone="neutral" />
           <StatusBadge label={statusBadge.label} tone={statusBadge.tone} />
         </View>
         {sourceTitle ? (
@@ -58,25 +61,31 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    ...elevation,
+    ...elevation.soft,
   },
   pressed: {
-    opacity: 0.88,
+    backgroundColor: colors.background,
   },
   copy: {
     flex: 1,
-    gap: spacing.xs,
+    gap: spacing.xxs,
     minWidth: 0,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.xs,
   },
   title: {
     ...typography.heading,
     color: colors.text,
+    flex: 1,
     flexShrink: 1,
   },
   badges: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm,
+    gap: spacing.xxs,
   },
   meta: {
     ...typography.caption,

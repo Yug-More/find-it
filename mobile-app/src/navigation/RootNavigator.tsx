@@ -6,11 +6,9 @@ import { colors, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import { ClaimsScreen } from "../screens/ClaimsScreen";
 import { EditReportScreen } from "../screens/EditReportScreen";
-import { HomeScreen } from "../screens/HomeScreen";
 import { MatchesScreen } from "../screens/MatchesScreen";
 import { MyReportsScreen } from "../screens/MyReportsScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
-import { ProfileScreen } from "../screens/ProfileScreen";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen";
 import { ReportsListScreen } from "../screens/ReportsListScreen";
 import { SignInScreen } from "../screens/SignInScreen";
@@ -19,6 +17,7 @@ import { SubmitClaimScreen } from "../screens/SubmitClaimScreen";
 import { SubmitReportScreen } from "../screens/SubmitReportScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
 import type { ItemType } from "../types/report";
+import { MainTabs } from "./MainTabs";
 import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -71,10 +70,10 @@ function SignedInStack({ reportType }: { reportType: ItemType | null }) {
 
   return (
     <Stack.Navigator
-      initialRouteName={startingType ? "SubmitReport" : "Home"}
+      initialRouteName={startingType ? "SubmitReport" : "MainTabs"}
       screenOptions={screenOptions}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <Stack.Screen
         name="SubmitReport"
         component={SubmitReportScreen}
@@ -101,7 +100,6 @@ function SignedInStack({ reportType }: { reportType: ItemType | null }) {
         component={NotificationsScreen}
         options={{ title: "Notifications" }}
       />
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
     </Stack.Navigator>
   );
 }
