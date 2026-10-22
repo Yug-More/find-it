@@ -35,6 +35,10 @@ create table if not exists items (
     type item_type not null,
     title text not null,
     description text not null,
+    -- Optional AI-generated copy; the user-provided title/description stay above.
+    ai_title text,
+    ai_description text,
+    ai_description_generated_at timestamptz,
     category text,
     color text,
     brand text,
@@ -66,6 +70,26 @@ create table if not exists claims (
 
 create index if not exists claims_item_id_idx on claims (item_id);
 
+create type notification_kind as enum ('match', 'claim', 'claim_update', 'report');
+
+-- In-app notifications for match, claim, and report events.
+create table if not exists notifications (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references profiles (id) on delete cascade,
+    kind notification_kind not null,
+    title text not null,
+    body text not null,
+    item_id uuid references items (id) on delete cascade,
+    claim_id uuid references claims (id) on delete cascade,
+    is_read boolean not null default false,
+    created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_user_created_idx
+    on notifications (user_id, created_at desc);
+create index if not exists notifications_user_unread_idx
+    on notifications (user_id) where not is_read;
+
 -- Finds items of `match_item_type` whose embedding is closest to `query_embedding`,
 -- above `match_threshold` cosine similarity, excluding `exclude_item_id` itself.
 create or replace function match_items(
@@ -82,6 +106,8 @@ returns table (
     title text,
     description text,
     category text,
+    color text,
+    brand text,
     image_url text,
     location text,
     latitude double precision,
@@ -100,6 +126,8 @@ as $$
         items.title,
         items.description,
         items.category,
+        items.color,
+        items.brand,
         items.image_url,
         items.location,
         items.latitude,
@@ -121,6 +149,7 @@ $$;
 alter table profiles enable row level security;
 alter table items enable row level security;
 alter table claims enable row level security;
+alter table notifications enable row level security;
 
 create policy "Profiles are viewable by authenticated users"
     on profiles for select
@@ -135,7 +164,12 @@ create policy "Users can update their own profile"
 create policy "Open items are viewable by authenticated users"
     on items for select
     to authenticated
-    using (true);
+    using (status = 'open');
+
+create policy "Users can view their own items"
+    on items for select
+    to authenticated
+    using (auth.uid() = user_id);
 
 create policy "Users can create their own items"
     on items for insert
@@ -158,9 +192,28 @@ create policy "Item owners and claimants can view claims"
 create policy "Users can create claims on items they do not own"
     on claims for insert
     to authenticated
-    with check (auth.uid() = claimant_id);
+    with check (
+        auth.uid() = claimant_id
+        and not exists (
+            select 1
+            from items
+            where items.id = claims.item_id
+                and items.user_id = auth.uid()
+        )
+    );
 
 create policy "Item owners can update claims on their items"
     on claims for update
     to authenticated
     using (auth.uid() in (select user_id from items where items.id = claims.item_id));
+
+create policy "Users can view their own notifications"
+    on notifications for select
+    to authenticated
+    using (auth.uid() = user_id);
+
+create policy "Users can mark their own notifications read"
+    on notifications for update
+    to authenticated
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);

@@ -7,3 +7,5 @@ google-genai==0.3.0
 PyJWT==2.9.0
 python-dotenv==1.0.1
 python-multipart==0.0.9
+# Explicitly required for RS256/ES256 JWT verification and test keypairs
+cryptography==50.0.1
