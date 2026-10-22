@@ -130,3 +130,4 @@ See [`mobile-app/README.md`](mobile-app/README.md) for environment variables, mo
 ### TODO
 
 - add design decisions to README
+- add deployment instructions to README
