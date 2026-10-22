@@ -83,3 +83,6 @@ app/
 | PATCH  | `/claims/{id}`            | Approve/reject a claim (owner only)            |
 
 All endpoints except `/health`, `/items` (browse/read) require an `Authorization: Bearer <supabase-access-token>` header.
+# Testing
+
+Run the test suite from the `ai-service` directory with `pytest`.
