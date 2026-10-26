@@ -59,6 +59,8 @@ graph TD
 
 ### Backend (`ai-service`)
 
+Run all backend commands from the `ai-service` directory.
+
 1. Clone the repo and move into the backend:
 
    ```bash
