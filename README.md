@@ -4,7 +4,7 @@ FindIt is an AI-powered lost-and-found platform that connects users with their m
 
 ## Project status
 
-Currently under development for CS 160: Software Engineering at San José State University.
+Currently under active development for CS 160: Software Engineering at San José State University.
 
 ## Team 10 members
 
