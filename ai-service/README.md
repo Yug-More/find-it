@@ -64,6 +64,7 @@ app/
     models/           Pydantic request/response schemas
     services/         business logic (items, claims, profiles, embeddings)
     routers/          HTTP route definitions
+    tests/            pytest unit tests + opt-in integration tests
 ```
 
 ## Endpoints
