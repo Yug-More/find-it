@@ -49,3 +49,9 @@ Tests in `app/tests/`:
 # TODO
 
 - Add gemini API key
+
+The integration tests are skipped by default. To run them against real services (needs credentials in `.env`):
+
+```bash
+RUN_INTEGRATION=1 pytest -m integration -v
+```
