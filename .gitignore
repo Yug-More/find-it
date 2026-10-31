@@ -36,3 +36,7 @@ htmlcov/
 # Expo / React Native
 .expo-shared/
 *.tsbuildinfo
+
+# Python build artifacts
+build/
+*.egg
