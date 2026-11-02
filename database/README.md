@@ -33,7 +33,7 @@ The Supabase SQL Editor does not support psql variables. Replace each token with
 
 Then run the file. With `psql`, edit the `\set` lines and run `psql "$SUPABASE_DB_URL" -f database/seeds.sql`.
 
-Seeded rows have `NULL` embeddings, so they cannot appear in match results until embeddings are generated through `POST /items` or a backfill script. Running the seeds twice creates duplicates.
+Seeded rows have `NULL` embeddings, so they cannot appear in match results until embeddings are generated through `POST /items` or [`ai-service/scripts/backfill_embeddings.py`](../ai-service/scripts/backfill_embeddings.py). Running the seeds twice creates duplicates.
 
 Items also support optional AI-generated copy in `ai_title`, `ai_description`, and `ai_description_generated_at`. User-provided `title` and `description` remain the source of truth.
 

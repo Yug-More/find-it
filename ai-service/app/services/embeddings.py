@@ -11,6 +11,18 @@ def _get_genai_client() -> genai.Client:
     return genai.Client(api_key=get_settings().gemini_api_key)
 
 
+def embedding_text(
+    title: str,
+    description: str,
+    category: str | None = None,
+    color: str | None = None,
+    brand: str | None = None,
+) -> str:
+    """Build the text that is embedded for an item."""
+    parts = [title, description, category or "", color or "", brand or ""]
+    return " ".join(part for part in parts if part)
+
+
 def get_text_embedding(text: str) -> list[float]:
     """Generate a vector embedding for a piece of text (item title + description)."""
     client = _get_genai_client()

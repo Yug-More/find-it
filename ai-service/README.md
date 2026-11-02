@@ -55,6 +55,24 @@ through the API (which generates a real embedding), verifies it in Supabase,
 then deletes it. Set `INTEGRATION_TEST_USER_ID` to choose which existing profile
 owns test rows; otherwise the first profile in the project is used.
 
+## Backfilling embeddings
+
+Seeded rows and older reports can have a `NULL` embedding, which excludes them
+from match search. Fill them in with the backfill script:
+
+```bash
+# Show what would change, without writing
+python scripts/backfill_embeddings.py --dry-run
+
+# Embed at most 100 items, pausing between Gemini calls
+python scripts/backfill_embeddings.py --limit 100 --delay 0.5
+```
+
+Run it from `ai-service` so `.env` is loaded. The script only selects rows whose
+embedding is still `NULL`, so it is safe to run more than once. Failures are
+reported per item and the run continues; the exit code is non-zero if any item
+failed.
+
 ## Structure
 
 ```
@@ -65,6 +83,8 @@ app/
     services/         business logic (items, claims, profiles, embeddings)
     routers/          HTTP route definitions
     tests/            pytest unit tests + opt-in integration tests
+scripts/
+    backfill_embeddings.py   fill missing item embeddings
 ```
 
 ## Endpoints

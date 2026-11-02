@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from supabase import Client
 
 from app.models.item import ItemCreate, ItemMatch, ItemOut, ItemUpdate
-from app.services.embeddings import get_text_embedding
+from app.services.embeddings import embedding_text, get_text_embedding
 
 TABLE = "items"
 MATCH_COUNT = 10
@@ -12,8 +12,9 @@ MATCH_THRESHOLD = 0.75
 
 
 def _embedding_text(item: ItemCreate) -> str:
-    parts = [item.title, item.description, item.category or "", item.color or "", item.brand or ""]
-    return " ".join(part for part in parts if part)
+    return embedding_text(
+        item.title, item.description, item.category, item.color, item.brand
+    )
 
 
 def create_item(supabase: Client, user_id: str, payload: ItemCreate) -> ItemOut:
