@@ -9,7 +9,7 @@ import {
   listMockReports,
   updateMockReport,
 } from "./mockReports";
-import { createItem, deleteItem, fetchItem, fetchItems, updateItem } from "./reportsApi";
+import { createItem, deleteItem, fetchItem, fetchAllItems, updateItem } from "./reportsApi";
 
 const MISSING_URL =
   "The API URL is not configured. Set EXPO_PUBLIC_API_URL before turning off sample data.";
@@ -24,7 +24,7 @@ export async function listReports(): Promise<Report[]> {
     return listMockReports();
   }
   assertApiConfigured();
-  return fetchItems();
+  return fetchAllItems();
 }
 
 export async function getReport(reportId: string): Promise<Report> {
@@ -42,8 +42,8 @@ export async function createReport(
   accessToken?: string,
   userId?: string,
 ): Promise<Report> {
-  const prepared = await withUploadedImage(input, userId, shouldUseMockData());
   if (shouldUseMockData()) {
+    const prepared = await withUploadedImage(input, userId, true);
     return createMockReport(prepared, userId);
   }
 
@@ -52,6 +52,7 @@ export async function createReport(
     throw new ReportServiceError(MISSING_SESSION, "authentication");
   }
 
+  const prepared = await withUploadedImage(input, userId, false);
   return createItem(prepared, accessToken);
 }
 
@@ -61,11 +62,11 @@ export async function updateReport(
   accessToken?: string,
   userId?: string,
 ): Promise<Report> {
-  const prepared = await withUploadedImage(input, userId, shouldUseMockData());
   if (shouldUseMockData()) {
     if (!userId) {
       throw new ReportServiceError(MISSING_ACCOUNT, "authentication");
     }
+    const prepared = await withUploadedImage(input, userId, true);
     return updateMockReport(reportId, prepared, userId);
   }
 
@@ -73,6 +74,7 @@ export async function updateReport(
   if (!accessToken) {
     throw new ReportServiceError(MISSING_ACCOUNT, "authentication");
   }
+  const prepared = await withUploadedImage(input, userId, false);
   return updateItem(reportId, prepared, accessToken);
 }
 

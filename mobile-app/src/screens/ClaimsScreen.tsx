@@ -1,17 +1,19 @@
 import { useCallback, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ClaimCard } from "../components/claims/ClaimCard";
+import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
-import { colors, layout, spacing } from "../constants/theme";
+import { colors, layout, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import { listClaimsForUser, setClaimStatus } from "../services/claims";
+import { shouldUseMockData } from "../services/config";
 import { listReports } from "../services/reports";
 import type { Claim, ClaimStatus } from "../types/claim";
 
@@ -109,10 +111,18 @@ export function ClaimsScreen() {
             tintColor={colors.accent}
           />
         }
+        ListHeaderComponent={error ? (
+          <View style={styles.inlineError}>
+            <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+            <Button label="Try again" variant="text" onPress={() => void load("refresh")} />
+          </View>
+        ) : null}
         ListEmptyComponent={
           <EmptyState
             title="No claims yet"
-            message="Claims you submit and claims on reports you own will appear here."
+            message={shouldUseMockData()
+              ? "Claims you submit and claims on reports you own will appear here."
+              : "Claims on reports you own will appear here. Your submitted claim history is not available yet."}
           />
         }
         renderItem={({ item }) => {
@@ -171,6 +181,8 @@ export function ClaimsScreen() {
 }
 
 const styles = StyleSheet.create({
+  inlineError: { gap: spacing.xs, marginBottom: spacing.sm },
+  error: { ...typography.body, color: colors.error },
   screen: {
     flex: 1,
     backgroundColor: colors.background,

@@ -10,7 +10,7 @@ import {
 import {
   createClaimApi,
   fetchItemClaims,
-  fetchItems,
+  fetchAllItems,
   updateClaimStatusApi,
 } from "./reportsApi";
 
@@ -49,7 +49,7 @@ export async function listClaimsForUser(
     throw new ReportServiceError(MISSING_ACCOUNT, "authentication");
   }
 
-  const items = await fetchItems();
+  const items = await fetchAllItems();
   const owned = items.filter((item) => item.userId === userId);
   const results: Claim[] = [];
 
