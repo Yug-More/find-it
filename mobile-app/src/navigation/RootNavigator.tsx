@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoadingState } from "../components/ui/LoadingState";
 import { colors, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
+import { AdminScreen } from "../screens/AdminScreen";
 import { ClaimsScreen } from "../screens/ClaimsScreen";
 import { EditReportScreen } from "../screens/EditReportScreen";
 import { MatchesScreen } from "../screens/MatchesScreen";
@@ -100,6 +101,7 @@ function SignedInStack({ reportType }: { reportType: ItemType | null }) {
         component={NotificationsScreen}
         options={{ title: "Notifications" }}
       />
+      <Stack.Screen name="Admin" component={AdminScreen} options={{ title: "Admin" }} />
     </Stack.Navigator>
   );
 }
