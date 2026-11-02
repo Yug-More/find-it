@@ -25,6 +25,7 @@ export type RootStackParamList = {
   Claims: undefined;
   SubmitClaim: { reportId: string };
   Notifications: undefined;
+  Admin: undefined;
   Profile: undefined;
   Activity: undefined;
 };

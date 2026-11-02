@@ -1,5 +1,15 @@
 import type { Session } from "@supabase/supabase-js";
 
+export type UserRole = "user" | "admin";
+
+export type Profile = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  role: UserRole;
+  createdAt: string;
+};
+
 export type SignInInput = {
   email: string;
   password: string;

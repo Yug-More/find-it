@@ -29,6 +29,7 @@ Tests in `app/tests/`:
 - `test_auth.py` - `/auth/me` endpoint
 - `test_items.py` - `/items` CRUD + matches
 - `test_claims.py` - `/claims` submit/list/update
+- `test_admin.py` - admin access control, reports, users, claims
 - `integration/test_live_services.py` - real Supabase + Gemini end-to-end checks
 
 ## Test Fixtures

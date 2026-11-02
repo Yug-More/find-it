@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -10,19 +10,46 @@ import { Screen } from "../components/ui/Screen";
 import { colors, radius, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
+import { fetchMyProfile } from "../services/admin";
 import { readFullName } from "../services/auth";
 import { shouldUseMockData } from "../services/config";
 import { resetMockClaims } from "../services/mockClaims";
 import { resetMockNotifications } from "../services/mockNotifications";
 import { resetMockReports } from "../services/mockReports";
+import type { UserRole } from "../types/auth";
 
 export function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { user, isDemoSession, signOut } = useAuth();
+  const { session, user, isDemoSession, signOut } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [adminRole, setAdminRole] = useState<{ token: string; role: UserRole } | null>(null);
+  const role: UserRole =
+    adminRole && adminRole.token === session?.access_token ? adminRole.role : "user";
   const fullName = readFullName(user);
   const email = user?.email?.trim() ?? "";
+
+  useEffect(() => {
+    if (shouldUseMockData() || !session?.access_token) {
+      return;
+    }
+
+    const token = session.access_token;
+    let active = true;
+    void fetchMyProfile(token)
+      .then((profile) => {
+        if (active) {
+          setAdminRole({ token, role: profile.role });
+        }
+      })
+      .catch(() => {
+        // A failed profile lookup hides admin controls. The server still enforces access.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session?.access_token]);
 
   async function handleSignOut() {
     setSubmitting(true);
@@ -70,6 +97,18 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate("Notifications")}
           disabled={submitting}
         />
+        {role === "admin" ? (
+          <>
+            <Divider inset />
+            <ListRow
+              label="Admin controls"
+              description="Review reports, users, and claims"
+              icon="shield-outline"
+              onPress={() => navigation.navigate("Admin")}
+              disabled={submitting}
+            />
+          </>
+        ) : null}
       </View>
 
       {formError ? (
