@@ -47,7 +47,7 @@ graph TD
 
 ## How to install
 
-> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The mobile app (`mobile-app`) supports sign-up, sign-in, browsing, search and filters, photos, My Reports, match review, and ownership claims. Signed-in users can submit, edit, and delete their own reports, claim another person’s open report, and approve or reject claims on reports they own. Notifications are available in mock mode. Live create and edit still depend on the backend Supabase and Gemini configuration, and photos need a Supabase Storage bucket.
+> **Status:** preliminary. The backend (`ai-service`) and database schema are runnable. The mobile app (`mobile-app`) supports sign-up, sign-in, browsing, search and filters, photos, My Reports, match review, and ownership claims. Signed-in users can submit, edit, and delete their own reports, claim another person’s open report, and approve or reject claims on reports they own. Claim lifecycle notifications and claimant history are available through authenticated API routes. Live create and edit still depend on the backend Supabase and Gemini configuration, and photos need a Supabase Storage bucket.
 
 ### Prerequisites
 
@@ -96,11 +96,11 @@ See [`ai-service/README.md`](ai-service/README.md) for the full endpoint list an
 
 ### Database
 
-Schema and seed instructions live in [`database/`](database/). Run [`schema.sql`](database/schema.sql) once per Supabase project; [`seeds.sql`](database/seeds.sql) has notes for adding local test data.
+Schema and seed instructions live in [`database/`](database/). Run [`schema.sql`](database/schema.sql) once per new Supabase project. Existing projects apply the migrations in filename order, including `20261102_claim_notification_lifecycle.sql`, before deploying the backend; [`seeds.sql`](database/seeds.sql) has notes for adding local test data.
 
 ### Mobile app (`mobile-app`)
 
-The app includes sign-up, sign-in, a profile screen, report photos, search and filters, My Reports, matches, claims, mock notifications, and edit or delete for the report owner. Sample data is on by default. A signed-in user submits, updates, deletes, claims, and reviews matches through the API with the Supabase access token. The app combines the open and resolved `GET /items` status filters for browsing and report history, then applies search and filters on the device.
+The app includes sign-up, sign-in, a profile screen, report photos, search and filters, My Reports, matches, claims, in-app notifications, and edit or delete for the report owner. Sample data is on by default. A signed-in user submits, updates, deletes, claims, and reviews matches through the API with the Supabase access token. The app combines the open and resolved `GET /items` status filters for browsing and report history, then applies search and filters on the device.
 
 1. From the repository root:
 

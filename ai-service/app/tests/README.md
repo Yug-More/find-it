@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Python 3.11+
-- Installed dependencies: `cd ai-service && pip install -r requirements.txt`
+- Installed dependencies: `cd ai-service && pip install -r requirements-dev.txt`
 
 ## Running Tests
 From the `ai-service` directory:
@@ -55,3 +55,8 @@ The integration tests are skipped by default. To run them against real services 
 ```bash
 RUN_INTEGRATION=1 pytest -m integration -v
 ```
+
+
+Lifecycle coverage lives in `test_claim_lifecycle.py`, `test_notifications.py`, and `test_image_cleanup.py`. These verify token-derived ownership, history mapping, conflicts, notification access and read updates, and Storage deletion validation/failure handling. `fake_supabase.py` supports the API contracts; it is not a proof of database transaction behavior.
+
+Run `cd database && npm ci && npm test` from the repository root for the real lifecycle SQL/RLS/rollback tests in embedded PostgreSQL. Those tests omit the unrelated vector extension and do not replace hosted-service or multi-connection concurrency checks. The existing live integration suite remains opt-in and requires actual credentials.

@@ -12,7 +12,7 @@ Supabase Postgres schema and seed data.
 
 `schema.sql` creates the required `vector` extension. If extension creation is blocked, enable **vector** under **Database -> Extensions** first.
 
-For an existing database, apply [`migrations/20261021_schema_hardening.sql`](./migrations/20261021_schema_hardening.sql) instead of resetting.
+For an existing database, apply [`migrations/20261021_schema_hardening.sql`](./migrations/20261021_schema_hardening.sql) instead of resetting. Then apply [`migrations/20261102_claim_notification_lifecycle.sql`](./migrations/20261102_claim_notification_lifecycle.sql) for claim decisions and notifications. Run migrations in filename order before deploying the matching backend.
 
 ## Seed data
 
@@ -49,8 +49,8 @@ RLS is enabled on all tables. Policies apply to the `authenticated` role.
 | --- | --- | --- | --- | --- |
 | `profiles` | All authenticated | None (Auth trigger only) | Own row | None |
 | `items` | Open items and own items | Own rows | Own rows | None |
-| `claims` | Claimant or item owner | Own claims, not on own items | Item owner | None |
-| `notifications` | Own rows | None (service role only) | Own rows | None |
+| `claims` | Claimant or item owner | Trusted API function | Trusted API function | None |
+| `notifications` | Own rows | None (service role only) | Own `is_read` column only | None |
 
 The API uses `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS. Keep it server-side. Ownership checks and the “cannot claim your own item” rule are enforced in both the database and the backend.
 
@@ -110,3 +110,24 @@ select id, email, raw_user_meta_data ->> 'full_name'
 from auth.users
 on conflict (id) do nothing;
 ```
+
+
+## Claim lifecycle migration
+
+`20261102_claim_notification_lifecycle.sql` adds and backfills `claims.updated_at`, adds a claimant-history index, and installs `submit_item_claim` and `decide_item_claim`. It does not remove historical rows or rewrite the previous migration. The same definitions are included at the end of `schema.sql` for fresh projects.
+
+Both functions have a fixed search path and are executable only by `service_role`. FastAPI supplies the verified actor ID. They serialize mutations using the item row lock before touching claims. Submission checks ownership, open status, explanation length, and existing active claims. Approval resolves the item, rejects other pending claims, and writes all decision notifications atomically. Final decisions cannot be reversed or repeated. Rejected claims permit a new submission. Historical duplicate pending claims, if present, are preserved; future submissions are blocked until they are decided, and approving one rejects the rest.
+
+Authenticated direct claim mutations are revoked; existing SELECT RLS remains. Notifications keep recipient SELECT/UPDATE RLS, and authenticated UPDATE is limited to `is_read`. There is no authenticated INSERT grant. The API also enforces ownership because its service-role connection bypasses RLS. Do not grant lifecycle functions to `public`, `anon`, or `authenticated`, since their actor argument is trusted server context.
+
+No Storage bucket is created by this migration. Use `report-images` and owner-folder upload policies from the mobile README. Backend cleanup uses service-role privileges and validates the bucket, project, owner folder, and remaining report references before deletion.
+
+## Offline SQL verification
+
+```bash
+cd database
+npm ci
+npm test
+```
+
+These development-only tests execute the real schema and migration in PGlite (PostgreSQL in WASM), including transaction rollback, RLS, column privileges, RPC grants, and competing-claim decisions. Only the unrelated vector extension/index/match RPC are omitted. No live credentials are used. Multi-connection locking and hosted Supabase Storage still need staging verification. The API suite uses its existing Supabase fake separately.
