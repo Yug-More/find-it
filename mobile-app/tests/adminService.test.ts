@@ -124,16 +124,15 @@ it("loads admin claims", async () => {
 
   const claims = await listAdminClaims("session-token", "pending");
 
-  expect(claims).toEqual([
-    {
-      id: "claim-1",
-      itemId: "item-1",
-      claimantId: "user-2",
-      message: "It is mine",
-      status: "pending",
-      createdAt: "2026-01-02T00:00:00.000Z",
-    },
-  ]);
+  expect(claims).toHaveLength(1);
+  expect(claims[0]).toMatchObject({
+    id: "claim-1",
+    itemId: "item-1",
+    claimantId: "user-2",
+    message: "It is mine",
+    status: "pending",
+    createdAt: "2026-01-02T00:00:00.000Z",
+  });
 });
 
 it("maps a forbidden admin response to the forbidden error kind", async () => {

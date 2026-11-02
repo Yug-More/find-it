@@ -2,11 +2,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from app.core.config import get_settings
 from app.services.image_cleanup import owned_image_path
 from app.tests.conftest import TEST_USER_ID
 from app.tests.fixtures import sample_item_create
 
-BASE = "https://test-project.supabase.co"
+BASE = get_settings().supabase_url.rstrip("/")
 PREFIX = BASE + "/storage/v1/object/public/report-images/"
 OTHER = "00000000-0000-4000-8000-000000000002"
 
