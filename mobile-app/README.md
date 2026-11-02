@@ -98,6 +98,8 @@ In mock mode the form, list, details, search, filters, My Reports, edit, delete,
 
 When mock mode is on, Welcome includes **Continue with demo account**. That loads a local demo session (`demo@findit.local` / `user-1`) so signed-in screens can be reviewed without a live Supabase project. It does nothing when `EXPO_PUBLIC_USE_MOCK=false`.
 
+Resolved reports stay in My Reports and claim history. Mock match discovery, like live discovery, uses owned open reports and excludes resolved candidates.
+
 The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports, owner buttons, matches, and claims can be checked.
 
 ## Real API integrations
@@ -120,7 +122,9 @@ The client uses these routes:
 
 Reads for browse and details do not need a user token. Protected writes and claim routes send `Authorization: Bearer <supabase-access-token>`.
 
-`GET /items` returns open reports and can filter by `type`. Search, category, location, date, and status filters run on the device against that list. A resolved report is not in the live list until the API returns it.
+`GET /items` defaults to open reports and supports `type` and `status` (`open` or `resolved`). Browse, My Reports, and owner claim history combine both status requests, remove duplicate IDs, and sort newest first. Search, category, location, date, and status filters run on the device. Matches use open reports only. If either status request fails, the screen shows an error instead of presenting an incomplete history.
+
+Report-list and detail requests ignore superseded responses and responses arriving after leaving the screen. Refresh returns a promise so report deletion waits for the refreshed list. A failed claims refresh keeps existing rows visible with a retry action.
 
 Match confidence is the API `similarity` value shown as a percentage. The app does not invent match reasons.
 
@@ -134,7 +138,8 @@ Create and edit ask the API to build a Gemini embedding before it saves the item
 
 - Structured ownership-verification questions. The live claim API accepts one `message` field. The app treats that as the ownership explanation and shows optional local writing prompts. A question-and-answer contract would need a backend and schema change.
 - Live notifications for match and claim events.
-- Returning resolved reports from `GET /items` when the product needs them in browse and My Reports.
+- Claimant-wide claim history. The current live list can only load claims on owned reports.
+- Backend claim lifecycle checks: reject claims on resolved reports, validate allowed decision transitions, and save approval plus report resolution atomically. The mobile UI hides the claim action for resolved reports, but direct API callers still need these server checks.
 
 ## Supabase Storage
 
@@ -173,12 +178,13 @@ create policy "Users delete their own report photos"
   );
 ```
 
+Live create and edit check the API URL and access token before attempting a photo upload. Photo-library failures show a retryable error and keep the current photo.
+
 The app does not create the bucket. If the bucket or a policy is missing, photo upload fails and the report is not saved.
 
 ## Known limitations
 
-- Live search and filters only see the open reports returned by `GET /items`.
-- Replacing a photo uploads a new file and leaves the previous object in storage.
+- Replacing or deleting a photo leaves the previous object in storage. Failed report saves can also leave uploaded objects. Reliable cleanup still needs a server-side lifecycle so an uncertain network response cannot cause a photo used by a saved report to be deleted.
 - Create and edit fail when the API cannot reach Gemini or Supabase.
 - Live Matches loads one match request per owned open report.
 - Live Claims loads owned-report claims only. A claimant history list across all items is not available from the current API.

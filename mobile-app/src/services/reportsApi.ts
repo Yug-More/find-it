@@ -2,10 +2,17 @@ import { apiRequest } from "./http";
 import { mapClaim, mapClaimList, mapMatchList } from "./mapClaim";
 import { mapItem, mapItemList, toItemCreate } from "./mapReport";
 import type { Claim, ClaimInput, ClaimStatus } from "../types/claim";
-import type { Report, ReportInput } from "../types/report";
+import type { ItemStatus, Report, ReportInput } from "../types/report";
 
-export async function fetchItems(): Promise<Report[]> {
-  return mapItemList(await apiRequest("/items"));
+export async function fetchItems(status?: ItemStatus): Promise<Report[]> {
+  return mapItemList(await apiRequest(status ? `/items?status=${status}` : "/items"));
+}
+
+// The API defaults to open items and accepts one status per request.
+export async function fetchAllItems(): Promise<Report[]> {
+  const [open, resolved] = await Promise.all([fetchItems("open"), fetchItems("resolved")]);
+  const unique = new Map([...open, ...resolved].map((report) => [report.id, report]));
+  return [...unique.values()].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
 export async function fetchItem(reportId: string): Promise<Report> {

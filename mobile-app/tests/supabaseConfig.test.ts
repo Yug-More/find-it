@@ -2,7 +2,7 @@ import { getSupabaseClient, getSupabaseConfigError, MISSING_SUPABASE_MESSAGE } f
 
 describe("supabase configuration", () => {
   it("explains how to fix a missing Supabase URL or anon key", () => {
-    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_URL");
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
     expect(getSupabaseConfigError()).toBe(MISSING_SUPABASE_MESSAGE);
 
@@ -12,8 +12,8 @@ describe("supabase configuration", () => {
   });
 
   it("does not create a client when configuration is missing", () => {
-    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
-    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_URL");
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_ANON_KEY");
 
     const actual = jest.requireActual<typeof import("../src/services/supabase")>(
       "../src/services/supabase",

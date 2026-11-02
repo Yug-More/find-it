@@ -4,133 +4,63 @@ import { useFocusEffect } from "@react-navigation/native";
 import { getReport, listReports } from "../services/reports";
 import type { Report } from "../types/report";
 
-export function useReports() {
-  const [reports, setReports] = useState<Report[]>([]);
+// Focus loads and explicit retries share a generation so older responses cannot
+// replace a newer result. Blurring also invalidates pending requests.
+function useFocusedResource<T>(fetchResource: () => Promise<T>, initial: T, fallback: string) {
+  const [data, setData] = useState(initial);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const generation = useRef(0);
+  const focused = useRef(false);
+  const loadedResource = useRef<(() => Promise<T>) | null>(null);
 
-  const applyResult = useCallback((next: Report[]) => {
-    setReports(next);
+  const load = useCallback(async (refresh = false) => {
+    if (!focused.current) return;
+    const request = ++generation.current;
+    setLoading(!refresh);
+    setRefreshing(refresh);
     setError(null);
-    setLoading(false);
-    setRefreshing(false);
-  }, []);
-
-  const applyError = useCallback((caught: unknown) => {
-    setError(messageFrom(caught, "Reports could not be loaded."));
-    setLoading(false);
-    setRefreshing(false);
-  }, []);
-
-  const hasLoaded = useRef(false);
-
-  const load = useCallback(
-    (mode: "initial" | "refresh") => {
-      if (mode === "refresh") {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
+    try {
+      const next = await fetchResource();
+      if (request !== generation.current) return;
+      loadedResource.current = fetchResource;
+      setData(next);
+    } catch (caught) {
+      if (request !== generation.current) return;
+      setError(caught instanceof Error && caught.message ? caught.message : fallback);
+    } finally {
+      if (request === generation.current) {
+        setLoading(false);
+        setRefreshing(false);
       }
+    }
+  }, [fetchResource, fallback]);
 
-      listReports().then(applyResult).catch(applyError);
-    },
-    [applyError, applyResult],
+  useFocusEffect(useCallback(() => {
+    focused.current = true;
+    void load(loadedResource.current === fetchResource);
+    return () => {
+      focused.current = false;
+      generation.current += 1;
+    };
+  }, [fetchResource, load]));
+
+  return { data, loading, refreshing, error, retry: () => load(), refresh: () => load(true) };
+}
+
+export function useReports() {
+  const { data: reports, ...state } = useFocusedResource<Report[]>(
+    listReports, [], "Reports could not be loaded.",
   );
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      if (hasLoaded.current) {
-        setRefreshing(true);
-      }
-
-      listReports()
-        .then((next) => {
-          if (!active) {
-            return;
-          }
-          hasLoaded.current = true;
-          applyResult(next);
-        })
-        .catch((caught: unknown) => {
-          if (!active) {
-            return;
-          }
-          applyError(caught);
-        });
-
-      return () => {
-        active = false;
-      };
-    }, [applyError, applyResult]),
-  );
-
-  return {
-    reports,
-    loading,
-    refreshing,
-    error,
-    retry: () => load("initial"),
-    refresh: () => load("refresh"),
-  };
+  return { reports, ...state };
 }
 
 export function useReport(reportId: string) {
-  const [report, setReport] = useState<Report | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(null);
-
-    getReport(reportId)
-      .then((next) => {
-        setReport(next);
-        setLoading(false);
-      })
-      .catch((caught: unknown) => {
-        setReport(null);
-        setError(messageFrom(caught, "This report could not be loaded."));
-        setLoading(false);
-      });
-  }, [reportId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-
-      getReport(reportId)
-        .then((next) => {
-          if (!active) {
-            return;
-          }
-          setReport(next);
-          setError(null);
-          setLoading(false);
-        })
-        .catch((caught: unknown) => {
-          if (!active) {
-            return;
-          }
-          setReport(null);
-          setError(messageFrom(caught, "This report could not be loaded."));
-          setLoading(false);
-        });
-
-      return () => {
-        active = false;
-      };
-    }, [reportId]),
+  const fetchReport = useCallback(() => getReport(reportId), [reportId]);
+  const { data: report, ...state } = useFocusedResource<Report | null>(
+    fetchReport, null, "This report could not be loaded.",
   );
-
-  return { report, loading, error, retry: load };
-}
-
-function messageFrom(caught: unknown, fallback: string): string {
-  if (caught instanceof Error && caught.message) {
-    return caught.message;
-  }
-  return fallback;
+  // Never display the previous report while a different ID is being fetched.
+  return { report: report?.id === reportId ? report : null, ...state };
 }

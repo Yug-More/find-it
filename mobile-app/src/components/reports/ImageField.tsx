@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
@@ -17,39 +17,51 @@ type Props = {
 
 export function ImageField({ image, imageUrl, disabled = false, onChange }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const choosing = useRef(false);
+  const [picking, setPicking] = useState(false);
   const preview = image?.uri ?? imageUrl;
   const hasPhoto = Boolean(preview);
 
   async function choosePhoto() {
+    if (disabled || choosing.current) return;
+    choosing.current = true;
+    setPicking(true);
     setError(null);
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      setError("Photo library access is required to add an image.");
-      return;
-    }
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError("Photo library access is required to add an image.");
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (result.canceled || !result.assets[0]) {
-      return;
-    }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+      });
+      if (result.canceled || !result.assets[0]) {
+        return;
+      }
 
-    const asset = result.assets[0];
-    const fileName = asset.fileName?.trim() || "photo.jpg";
-    const selected: SelectedImage = {
-      uri: asset.uri,
-      mimeType: asset.mimeType || mimeTypeForFileName(fileName),
-      fileName,
-      fileSize: asset.fileSize ?? null,
-    };
-    const validationError = validateSelectedImage(selected);
-    if (validationError) {
-      setError(validationError);
-      return;
+      const asset = result.assets[0];
+      const fileName = asset.fileName?.trim() || "photo.jpg";
+      const selected: SelectedImage = {
+        uri: asset.uri,
+        mimeType: asset.mimeType || mimeTypeForFileName(fileName),
+        fileName,
+        fileSize: asset.fileSize ?? null,
+      };
+      const validationError = validateSelectedImage(selected);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      onChange(selected, imageUrl);
+    } catch {
+      setError("The photo library could not be opened. Try again.");
+    } finally {
+      choosing.current = false;
+      setPicking(false);
     }
-    onChange(selected, imageUrl);
   }
 
   function removePhoto() {
@@ -66,10 +78,10 @@ export function ImageField({ image, imageUrl, disabled = false, onChange }: Prop
         onPress={() => {
           void choosePhoto();
         }}
-        disabled={disabled}
+        disabled={disabled || picking}
       />
       {hasPhoto ? (
-        <Button label="Remove photo" variant="text" onPress={removePhoto} disabled={disabled} />
+        <Button label="Remove photo" variant="text" onPress={removePhoto} disabled={disabled || picking} />
       ) : null}
       {error ? (
         <Text accessibilityRole="alert" style={styles.error}>

@@ -13,6 +13,7 @@ export function listMockMatchesForReport(reportId: string): MatchResult[] {
     .map((pair) => {
       try {
         const report = getMockReport(pair.matchId);
+        if (report.status !== "open") return null;
         return {
           report,
           similarity: pair.similarity,
@@ -27,7 +28,7 @@ export function listMockMatchesForReport(reportId: string): MatchResult[] {
 }
 
 export function listMockMatchesForUser(userId: string): MatchResult[] {
-  const owned = listMockReports().filter((report) => report.userId === userId);
+  const owned = listMockReports().filter((report) => report.userId === userId && report.status === "open");
   const results: MatchResult[] = [];
   for (const report of owned) {
     results.push(...listMockMatchesForReport(report.id));

@@ -1,5 +1,6 @@
 import { fireEvent, userEvent } from "@testing-library/react-native";
 
+import * as claimsService from "../src/services/claims";
 import { resetMockClaims } from "../src/services/mockClaims";
 import { resetMockNotifications } from "../src/services/mockNotifications";
 import { resetMockReports } from "../src/services/mockReports";
@@ -59,6 +60,29 @@ describe("Match, claim, and notification flows", () => {
     await pressButton(approveButtons[approveButtons.length - 1]);
 
     expect(await view.findByText("Approved")).toBeOnTheScreen();
+  });
+
+  it("keeps claims visible and offers retry when refresh after approval fails", async () => {
+    const original = claimsService.listClaimsForUser;
+    const load = jest.spyOn(claimsService, "listClaimsForUser")
+      .mockImplementationOnce(original)
+      .mockRejectedValueOnce(new Error("Claims could not be refreshed."))
+      .mockImplementation(original);
+    try {
+      const view = await renderApp();
+      await userEvent.press(view.getByRole("button", { name: "Claims" }));
+      await view.findByText("Toyota key fob");
+      await userEvent.press(view.getByRole("button", { name: "Approve" }));
+      const buttons = view.getAllByRole("button", { name: "Approve" });
+      await pressButton(buttons[buttons.length - 1]);
+      expect(await view.findByText("Claims could not be refreshed.")).toBeOnTheScreen();
+      expect(view.getByText("Toyota key fob")).toBeOnTheScreen();
+      await userEvent.press(view.getByRole("button", { name: "Try again" }));
+      expect(await view.findByText("Approved")).toBeOnTheScreen();
+      expect(view.queryByText("Claims could not be refreshed.")).toBeNull();
+    } finally {
+      load.mockRestore();
+    }
   });
 
   it("opens notifications and marks them read", async () => {
