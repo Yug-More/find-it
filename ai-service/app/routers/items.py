@@ -5,7 +5,7 @@ from supabase import Client
 
 from app.core.security import get_current_user_id
 from app.core.supabase_client import get_supabase
-from app.models.item import ItemCreate, ItemMatch, ItemOut, ItemType, ItemUpdate
+from app.models.item import ItemCreate, ItemMatch, ItemOut, ItemStatus, ItemType, ItemUpdate
 from app.services.items import create_item, delete_item, find_matches, get_item, list_items, update_item
 
 router = APIRouter(prefix="/items", tags=["items"])
@@ -23,9 +23,14 @@ def report_item(
 @router.get("", response_model=list[ItemOut])
 def browse_items(
     type: ItemType | None = None,
+    status: ItemStatus | None = None,
     supabase: Client = Depends(get_supabase),
 ) -> list[ItemOut]:
-    return list_items(supabase, item_type=type.value if type else None)
+    return list_items(
+        supabase,
+        item_type=type.value if type else None,
+        item_status=status.value if status else "open",
+    )
 
 
 @router.get("/{item_id}", response_model=ItemOut)

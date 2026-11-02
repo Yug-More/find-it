@@ -39,8 +39,10 @@ def create_item(supabase: Client, user_id: str, payload: ItemCreate) -> ItemOut:
     return ItemOut(**result.data[0])
 
 
-def list_items(supabase: Client, item_type: str | None = None) -> list[ItemOut]:
-    query = supabase.table(TABLE).select("*").eq("status", "open")
+def list_items(
+    supabase: Client, item_type: str | None = None, item_status: str = "open"
+) -> list[ItemOut]:
+    query = supabase.table(TABLE).select("*").eq("status", item_status)
     if item_type:
         query = query.eq("type", item_type)
     result = query.order("created_at", desc=True).execute()

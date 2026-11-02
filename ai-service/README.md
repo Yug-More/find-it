@@ -94,7 +94,7 @@ scripts/
 | GET    | `/health`                | Liveness check                                 |
 | GET    | `/auth/me`                | Current user's profile                         |
 | POST   | `/items`                  | Report a lost/found item (generates embedding) |
-| GET    | `/items`                  | Browse open items (optional `?type=lost/found`)|
+| GET    | `/items`                  | Browse items (`?type=lost/found`, `?status=open/resolved`) |
 | GET    | `/items/{id}`             | Get a single item                              |
 | PATCH  | `/items/{id}`             | Update a report (owner only)                   |
 | DELETE | `/items/{id}`             | Delete a report (owner only)                   |

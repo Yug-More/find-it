@@ -14,6 +14,28 @@ class TestItemsAPI:
         data = response.json()
         assert isinstance(data, list)
 
+    def test_browse_items_defaults_to_open(self, client, fake_db):
+        """GET /items should only return open items by default."""
+        owner_id = fake_db.tables["profiles"][0]["id"]
+        fake_db.add_item(owner_id, title="Open item")
+        fake_db.add_item(owner_id, title="Resolved item", status="resolved")
+
+        response = client.get("/items")
+
+        assert response.status_code == 200
+        assert [item["title"] for item in response.json()] == ["Open item"]
+
+    def test_browse_items_filtered_by_status(self, client, fake_db):
+        """GET /items?status=resolved should only return resolved items."""
+        owner_id = fake_db.tables["profiles"][0]["id"]
+        fake_db.add_item(owner_id, title="Open item")
+        fake_db.add_item(owner_id, title="Resolved item", status="resolved")
+
+        response = client.get("/items?status=resolved")
+
+        assert response.status_code == 200
+        assert [item["title"] for item in response.json()] == ["Resolved item"]
+
     def test_browse_items_filtered_by_type(self, client):
         """GET /items?type=lost should only return lost items."""
         response = client.get("/items?type=lost")
