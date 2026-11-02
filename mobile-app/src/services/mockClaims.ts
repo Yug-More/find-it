@@ -34,6 +34,7 @@ export function listMockClaimsForUser(userId: string): Claim[] {
     .map((claim) => ({
       ...claim,
       itemTitle: safeTitle(claim.itemId),
+      item: safeItem(claim.itemId),
     }))
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
@@ -47,6 +48,11 @@ export function createMockClaim(itemId: string, claimantId: string, input: Claim
     throw new ReportServiceError("This report is no longer open for claims.", "validation");
   }
 
+  if (claims.some((claim) => claim.itemId === itemId && claim.claimantId === claimantId &&
+      (claim.status === "pending" || claim.status === "approved"))) {
+    throw new ReportServiceError("You already have an active claim on this report.", "validation");
+  }
+
   const claim: Claim = {
     id: `claim-local-${nextNumber}`,
     itemId,
@@ -54,6 +60,7 @@ export function createMockClaim(itemId: string, claimantId: string, input: Claim
     message: input.message.trim(),
     status: "pending",
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     itemTitle: item.title,
   };
   nextNumber += 1;
@@ -83,8 +90,16 @@ export function updateMockClaimStatus(
     throw new ReportServiceError("Only the item owner can update this claim", "forbidden");
   }
 
+  if (current.status !== "pending" || (status !== "approved" && status !== "rejected")) {
+    throw new ReportServiceError("Only pending claims can be approved or rejected.", "validation");
+  }
+  if (status === "approved" && item.status !== "open") {
+    throw new ReportServiceError("This report is already resolved.", "validation");
+  }
+
   const updated: Claim = {
     ...current,
+    updatedAt: new Date().toISOString(),
     status,
     itemTitle: item.title,
   };
@@ -92,6 +107,10 @@ export function updateMockClaimStatus(
 
   if (status === "approved") {
     updateMockReportStatus(item.id, "resolved");
+    const others = claims.filter((claim) => claim.itemId === item.id && claim.status === "pending");
+    for (const other of others) {
+      updateMockClaimStatus(other.id, requesterId, "rejected");
+    }
   }
 
   addMockNotification({
@@ -134,4 +153,9 @@ function safeTitle(itemId: string): string {
 
 function clone(items: Claim[]): Claim[] {
   return items.map((item) => ({ ...item }));
+}
+
+
+function safeItem(itemId: string) {
+  try { return getMockReport(itemId); } catch { return null; }
 }

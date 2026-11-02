@@ -89,3 +89,8 @@ export async function updateClaimStatusApi(
     }),
   );
 }
+
+
+export async function fetchMyClaims(accessToken: string): Promise<Claim[]> {
+  return mapClaimList(await apiRequest("/claims/mine", { accessToken }));
+}

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -21,15 +21,21 @@ import type { AppNotification } from "../types/notification";
 
 export function NotificationsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const actionBusy = useRef(false);
+  const generation = useRef(0);
+  const focused = useRef(false);
   const mockOnly = notificationsUseMockData();
 
   const load = useCallback(
     async (mode: "initial" | "refresh" = "initial") => {
+      if (actionBusy.current || !focused.current) return;
+      const request = ++generation.current;
       if (!user?.id) {
         setError("Sign in to view notifications.");
         setLoading(false);
@@ -42,46 +48,78 @@ export function NotificationsScreen() {
       }
       setError(null);
       try {
-        setItems(await listNotifications(user.id));
+        const next = await listNotifications(user.id, session?.access_token);
+        if (request === generation.current) setItems(next);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Notifications could not be loaded.");
+        if (request === generation.current) {
+          setError(caught instanceof Error ? caught.message : "Notifications could not be loaded.");
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (request === generation.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
-    [user],
+    [user, session],
   );
 
   useFocusEffect(
     useCallback(() => {
+      focused.current = true;
+      setBusy(actionBusy.current);
       void load("initial");
+      return () => { focused.current = false; generation.current += 1; };
     }, [load]),
   );
 
-  async function openNotification(notification: AppNotification) {
-    if (!notification.read) {
-      try {
-        await markNotificationRead(notification.id, user?.id);
-        setItems((current) =>
-          current.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
-        );
-      } catch {
-        // Opening the related report still helps even if the read mark fails.
+  async function runAction(action: () => Promise<void>) {
+    if (actionBusy.current) return;
+    actionBusy.current = true;
+    const request = ++generation.current;
+    setBusy(true);
+    setRefreshing(false);
+    setError(null);
+    try {
+      await action();
+    } catch (caught) {
+      if (request === generation.current) {
+        setError(caught instanceof Error ? caught.message : "The notification could not be updated. Try again.");
       }
-    }
-    if (notification.reportId) {
-      navigation.navigate("ReportDetails", {
-        reportId: notification.reportId,
-        origin: "browse",
-      });
+    } finally {
+      actionBusy.current = false;
+      if (focused.current) setBusy(false);
     }
   }
 
-  async function markAll() {
-    await markAllNotificationsRead(user?.id);
-    setItems((current) => current.map((item) => ({ ...item, read: true })));
+  async function openNotification(notification: AppNotification) {
+    await runAction(async () => {
+      const request = generation.current;
+      if (!notification.read) {
+        const updated = await markNotificationRead(notification.id, user?.id, session?.access_token);
+        if (request !== generation.current) return;
+        setItems((current) => current.map((item) => item.id === updated.id ? updated : item));
+      }
+      if (!focused.current || request !== generation.current) return;
+      if (notification.reportId) {
+        navigation.navigate("ReportDetails", { reportId: notification.reportId, origin: "browse" });
+      } else if (notification.claimId) {
+        navigation.navigate("Claims");
+      }
+    });
   }
+
+  async function markAll() {
+    await runAction(async () => {
+      const request = generation.current;
+      const unreadIds = new Set(items.filter((item) => !item.read).map((item) => item.id));
+      await markAllNotificationsRead(user?.id, session?.access_token);
+      if (request !== generation.current) return;
+      setItems((current) => current.map((item) => unreadIds.has(item.id) ? { ...item, read: true } : item));
+    });
+  }
+
+  const unreadCount = items.filter((item) => !item.read).length;
 
   if (loading && !refreshing) {
     return <LoadingState message="Loading notifications" />;
@@ -109,10 +147,17 @@ export function NotificationsScreen() {
           <Text style={styles.intro}>
             {mockOnly
               ? "These sample notifications stay on this device while mock mode is on."
-              : "A live notification API is not available yet. This list stays empty until one is added."}
+              : "Updates about ownership claims on your reports and claims you submit."}
           </Text>
-          {mockOnly && items.some((item) => !item.read) ? (
-            <Button label="Mark all as read" variant="text" onPress={() => void markAll()} />
+          <Text accessibilityLiveRegion="polite" style={styles.intro}>{unreadCount} unread</Text>
+          {error ? (
+            <View>
+              <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+              <Button label="Try again" variant="text" disabled={busy} onPress={() => void load("refresh")} />
+            </View>
+          ) : null}
+          {unreadCount > 0 ? (
+            <Button label="Mark all as read" disabled={busy} variant="text" onPress={() => void markAll()} />
           ) : null}
         </View>
       }
@@ -122,18 +167,19 @@ export function NotificationsScreen() {
           message={
             mockOnly
               ? "Match and claim updates will appear here while you use mock mode."
-              : "Live notifications need a backend endpoint before they can appear here."
+              : "Updates will appear when a claim is submitted, approved, or rejected."
           }
         />
       }
       renderItem={({ item }) => (
-        <NotificationRow notification={item} onPress={() => void openNotification(item)} />
+        <NotificationRow notification={item} disabled={busy} onPress={() => void openNotification(item)} />
       )}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  error: { ...typography.body, color: colors.error },
   screen: {
     flex: 1,
     backgroundColor: colors.background,
