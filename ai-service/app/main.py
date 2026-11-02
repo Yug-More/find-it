@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.routers import auth, claims, items, notifications
+from app.routers import admin, auth, claims, items, notifications
 
 settings = get_settings()
 
@@ -20,6 +20,7 @@ app.include_router(auth.router)
 app.include_router(items.router)
 app.include_router(claims.router)
 app.include_router(notifications.router)
+app.include_router(admin.router)
 
 
 @app.get("/health", tags=["health"])

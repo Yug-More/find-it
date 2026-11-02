@@ -4,12 +4,18 @@
 create extension if not exists vector;
 
 -- One row per authenticated user, mirroring auth.users.
+create type user_role as enum ('user', 'admin');
+
 create table if not exists profiles (
     id uuid primary key references auth.users (id) on delete cascade,
     email text not null,
     full_name text,
+    -- Server-managed. Users must never be able to promote themselves.
+    role user_role not null default 'user',
     created_at timestamptz not null default now()
 );
+
+create index if not exists profiles_role_idx on profiles (role);
 
 -- Automatically create a profile row whenever a new auth user signs up.
 create or replace function handle_new_user()
@@ -160,6 +166,12 @@ create policy "Users can update their own profile"
     on profiles for update
     to authenticated
     using (auth.uid() = id);
+
+-- Profile role is server-managed. The update policy above allows users to edit
+-- their own profile, so restrict which columns they may write. The backend
+-- service role bypasses these grants when an admin changes data.
+revoke update on profiles from anon, authenticated;
+grant update (email, full_name) on profiles to authenticated;
 
 create policy "Open items are viewable by authenticated users"
     on items for select
