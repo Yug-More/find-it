@@ -47,8 +47,8 @@ describe("auth service", () => {
   });
 
   it("returns a configuration message instead of calling Supabase when keys are missing", async () => {
-    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
-    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_URL");
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_ANON_KEY");
 
     const result = await signIn("user@example.com", "password12");
     expect(result).toEqual({ ok: false, message: MISSING_SUPABASE_MESSAGE });

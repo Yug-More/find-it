@@ -190,8 +190,8 @@ describe("authentication flow", () => {
   });
 
   it("explains a missing Supabase configuration and still opens reports", async () => {
-    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
-    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_URL");
+    Reflect.deleteProperty(process.env, "EXPO_PUBLIC_SUPABASE_ANON_KEY");
     const view = await renderApp();
 
     expect(await view.findByText(MISSING_SUPABASE_MESSAGE)).toBeOnTheScreen();
