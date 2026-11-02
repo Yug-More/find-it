@@ -4,7 +4,8 @@ import { colors, elevation, radius, spacing, typography } from "../../constants/
 import type { Claim } from "../../types/claim";
 import { formatCreatedAt } from "../../utils/dates";
 import { Button } from "../ui/Button";
-import { StatusBadge } from "../ui/StatusBadge";
+import { ReportImage } from "../reports/ReportImage";
+import { reportStatusBadge, reportTypeBadge, StatusBadge } from "../ui/StatusBadge";
 
 type Props = {
   claim: Claim;
@@ -31,6 +32,15 @@ export function ClaimCard({
         </Text>
         <StatusBadge label={claimStatusLabel(claim.status)} tone={claimStatusTone(claim.status)} />
       </View>
+      {claim.item ? (
+        <View style={styles.summary}>
+          {claim.item.imageUrl ? <ReportImage uri={claim.item.imageUrl} label={`Photo of ${claim.item.title}`} size="thumb" /> : null}
+          <View style={styles.badges}>
+            <StatusBadge {...reportTypeBadge(claim.item.type)} />
+            <StatusBadge {...reportStatusBadge(claim.item.status)} />
+          </View>
+        </View>
+      ) : null}
       <Text style={styles.label}>Ownership explanation</Text>
       <Text style={styles.message}>{claim.message}</Text>
       <Text style={styles.meta}>Submitted {formatCreatedAt(claim.createdAt)}</Text>
@@ -79,6 +89,8 @@ export function claimStatusTone(status: Claim["status"]): "success" | "warning" 
 }
 
 const styles = StyleSheet.create({
+  summary: { flexDirection: "row", gap: spacing.sm, alignItems: "center" },
+  badges: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, flex: 1 },
   card: {
     gap: spacing.sm,
     backgroundColor: colors.surface,

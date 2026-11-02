@@ -11,6 +11,7 @@ import {
   createClaimApi,
   fetchItemClaims,
   fetchAllItems,
+  fetchMyClaims,
   updateClaimStatusApi,
 } from "./reportsApi";
 
@@ -49,14 +50,14 @@ export async function listClaimsForUser(
     throw new ReportServiceError(MISSING_ACCOUNT, "authentication");
   }
 
-  const items = await fetchAllItems();
+  const [items, mine] = await Promise.all([fetchAllItems(), fetchMyClaims(accessToken)]);
   const owned = items.filter((item) => item.userId === userId);
-  const results: Claim[] = [];
+  const results: Claim[] = [...mine];
 
   for (const item of owned) {
     try {
       const claims = await fetchItemClaims(item.id, accessToken);
-      results.push(...claims.map((claim) => ({ ...claim, itemTitle: item.title })));
+      results.push(...claims.map((claim) => ({ ...claim, itemTitle: item.title, item })));
     } catch (caught) {
       if (caught instanceof ReportServiceError && caught.kind === "forbidden") {
         continue;
@@ -65,7 +66,7 @@ export async function listClaimsForUser(
     }
   }
 
-  return results.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return [...new Map(results.map((claim) => [claim.id, claim])).values()].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
 export async function submitClaim(

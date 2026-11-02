@@ -1,6 +1,6 @@
 # find-it/mobile-app
 
-React Native client for FindIt. The app covers accounts, report photos, search and filters, My Reports, editing and deleting owned reports, match review, ownership claims, and mock notifications.
+React Native client for FindIt. The app covers accounts, report photos, search and filters, My Reports, editing and deleting owned reports, match review, ownership claims, and in-app notifications.
 
 ## Stack
 
@@ -118,7 +118,11 @@ The client uses these routes:
 | `GET` | `/items/{id}/matches` | Match cards and the Matches screen |
 | `POST` | `/items/{id}/claims` | Submit an ownership claim |
 | `GET` | `/items/{id}/claims` | Owner claim review |
-| `PATCH` | `/claims/{id}` | Approve or reject a claim |
+| `PATCH` | `/claims/{id}` | Approve or reject a pending claim |
+| `GET` | `/claims/mine` | Claims submitted by the signed-in user, with related report details |
+| `GET` | `/notifications` | Signed-in recipient notifications |
+| `PATCH` | `/notifications/{id}/read` | Mark one owned notification read |
+| `POST` | `/notifications/read-all` | Mark all owned notifications read |
 
 Reads for browse and details do not need a user token. Protected writes and claim routes send `Authorization: Bearer <supabase-access-token>`.
 
@@ -130,16 +134,13 @@ Match confidence is the API `similarity` value shown as a percentage. The app do
 
 Create and edit ask the API to build a Gemini embedding before it saves the item. Claim approval asks the API to mark the item resolved.
 
-## Mock-only features
+## Claim and notification behavior
 
-- Notifications. The database has a `notifications` table, but there is no notification API endpoint yet. Mock mode shows sample match and claim updates on the device. Live mode shows an empty notifications list with that limitation explained on screen.
+Apply `database/migrations/20261102_claim_notification_lifecycle.sql` after the earlier hardening migration before using the new live routes. The Claims screen combines `GET /claims/mine` with existing owner-facing claim routes and removes duplicate IDs. Claimant history maps update dates and related report photos, type, and status. The server derives claimant and recipient identity from the bearer token.
 
-## Required backend contracts still owned by teammates
+Claims require another user's open report. Duplicate active claims are rejected. Only pending claims can be approved or rejected, and only by the owner. Approval resolves the report and rejects other pending claims. Decisions are final; a rejected claimant may submit a new explanation while the report is still open.
 
-- Structured ownership-verification questions. The live claim API accepts one `message` field. The app treats that as the ownership explanation and shows optional local writing prompts. A question-and-answer contract would need a backend and schema change.
-- Live notifications for match and claim events.
-- Claimant-wide claim history. The current live list can only load claims on owned reports.
-- Backend claim lifecycle checks: reject claims on resolved reports, validate allowed decision transitions, and save approval plus report resolution atomically. The mobile UI hides the claim action for resolved reports, but direct API callers still need these server checks.
+Notifications work in live and mock mode. Claim submission notifies the owner; decisions notify the claimant, including competing claims rejected by approval. The screen shows the unread count, marks one notification when opened, and supports mark all as read. Read state changes only after API success. Failures stay visible with retry, and deleted report links lead to the existing report error/retry screen. There are no push notifications. Automatic match notifications remain sample-only; structured ownership questions still require a backend/schema contract.
 
 ## Supabase Storage
 
@@ -161,22 +162,11 @@ create policy "Users upload their own report photos"
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
-create policy "Users replace their own report photos"
-  on storage.objects for update
-  to authenticated
-  using (
-    bucket_id = 'report-images'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
-
-create policy "Users delete their own report photos"
-  on storage.objects for delete
-  to authenticated
-  using (
-    bucket_id = 'report-images'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
 ```
+
+The client uploads new unique objects and does not need Storage UPDATE or DELETE privileges. For an existing bucket, remove the old `Users replace their own report photos` and `Users delete their own report photos` policies if present; the backend uses its server-only service role for cleanup.
+
+Backend replacement, photo removal, and report deletion clean up the previous unreferenced owner photo only after the report change succeeds. Shared/external/invalid URLs are skipped. Storage failures preserve the report change and log a fixed warning. Object names must stay unique and immutable; do not reuse old image URLs.
 
 Live create and edit check the API URL and access token before attempting a photo upload. Photo-library failures show a retryable error and keep the current photo.
 
@@ -184,8 +174,10 @@ The app does not create the bucket. If the bucket or a policy is missing, photo 
 
 ## Known limitations
 
-- Replacing or deleting a photo leaves the previous object in storage. Failed report saves can also leave uploaded objects. Reliable cleanup still needs a server-side lifecycle so an uncertain network response cannot cause a photo used by a saved report to be deleted.
-- Create and edit fail when the API cannot reach Gemini or Supabase.
-- Live Matches loads one match request per owned open report.
-- Live Claims loads owned-report claims only. A claimant history list across all items is not available from the current API.
-- Notifications are mock-only.
+- Live create and edit depend on the backend reaching Gemini and Supabase.
+- Storage cleanup is best effort. Failed cleanup and uploads abandoned before a successful save need an operational sweep; there is no durable cleanup retry worker.
+- Live Matches and owner claim review still load per-report requests. Histories are not paginated because the existing API has no pagination pattern.
+- Structured ownership questions, automatic match notifications, and push delivery are not implemented.
+- Hosted-service behavior requires staging verification after applying migrations and Storage setup. Offline tests and mock-mode review do not prove live integration.
+
+See [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md) for the dependency review.

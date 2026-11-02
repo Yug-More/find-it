@@ -8,9 +8,10 @@ import { formatCreatedAt } from "../../utils/dates";
 type Props = {
   notification: AppNotification;
   onPress: () => void;
+  disabled?: boolean;
 };
 
-export function NotificationRow({ notification, onPress }: Props) {
+export function NotificationRow({ notification, onPress, disabled = false }: Props) {
   const icon = iconForKind(notification.kind);
 
   return (
@@ -18,6 +19,8 @@ export function NotificationRow({ notification, onPress }: Props) {
       accessibilityRole="button"
       accessibilityLabel={`${notification.read ? "" : "Unread. "}${notification.title}. ${notification.body}`}
       onPress={onPress}
+      disabled={disabled}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.row,
         !notification.read && styles.unread,

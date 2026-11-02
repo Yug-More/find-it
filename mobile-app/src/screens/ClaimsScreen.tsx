@@ -13,7 +13,6 @@ import { colors, layout, spacing, typography } from "../constants/theme";
 import { useAuth } from "../context/AuthContext";
 import type { RootStackParamList } from "../navigation/types";
 import { listClaimsForUser, setClaimStatus } from "../services/claims";
-import { shouldUseMockData } from "../services/config";
 import { listReports } from "../services/reports";
 import type { Claim, ClaimStatus } from "../types/claim";
 
@@ -120,9 +119,7 @@ export function ClaimsScreen() {
         ListEmptyComponent={
           <EmptyState
             title="No claims yet"
-            message={shouldUseMockData()
-              ? "Claims you submit and claims on reports you own will appear here."
-              : "Claims on reports you own will appear here. Your submitted claim history is not available yet."}
+            message="Claims you submit and claims on reports you own will appear here."
           />
         }
         renderItem={({ item }) => {
@@ -156,7 +153,7 @@ export function ClaimsScreen() {
         message={
           pending
             ? pending.status === "approved"
-              ? `Approve the claim for ${pending.claim.itemTitle ?? "this report"}? The report will be marked resolved.`
+              ? `Approve the claim for ${pending.claim.itemTitle ?? "this report"}? The report will be marked resolved and other pending claims will be rejected.`
               : `Reject the claim for ${pending.claim.itemTitle ?? "this report"}?`
             : ""
         }

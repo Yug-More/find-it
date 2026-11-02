@@ -51,7 +51,9 @@ it("keeps claims on owned resolved reports and sends the token only to claim end
   expect(await listClaimsForUser("session-token", "user-1")).toEqual([
     expect.objectContaining({ id: "claim-1", status: "approved", itemTitle: "Gray hoodie" }),
   ]);
-  expect(fetchMock).toHaveBeenCalledTimes(3);
+  expect(fetchMock).toHaveBeenCalledTimes(4);
+  expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/claims/mine",
+    expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer session-token" }) }));
   expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/items/resolved/claims",
     expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer session-token" }) }));
 });

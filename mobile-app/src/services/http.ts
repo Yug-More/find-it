@@ -63,7 +63,7 @@ function httpError(status: number, detail: string | null): ReportServiceError {
   if (status === 404) {
     return new ReportServiceError(safeDetail(detail, "That resource could not be found."), "not_found");
   }
-  if (status === 400 || status === 422) {
+  if (status === 400 || status === 409 || status === 422) {
     return new ReportServiceError(safeDetail(detail, "The request was not accepted."), "validation");
   }
   if (status >= 500) {

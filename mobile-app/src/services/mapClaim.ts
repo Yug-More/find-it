@@ -20,6 +20,7 @@ export function mapClaim(value: unknown): Claim {
     throw new ReportServiceError("The server returned an unreadable claim.", "network");
   }
 
+  const item = value.item == null ? null : mapItem(value.item);
   return {
     id: requiredString(value, "id"),
     itemId: requiredString(value, "item_id"),
@@ -27,6 +28,9 @@ export function mapClaim(value: unknown): Claim {
     message: requiredString(value, "message"),
     status,
     createdAt: requiredString(value, "created_at"),
+    updatedAt: typeof value.updated_at === "string" ? value.updated_at : undefined,
+    item,
+    itemTitle: item?.title,
   };
 }
 

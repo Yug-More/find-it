@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from uuid import uuid4
 
+from postgrest.exceptions import APIError
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -25,6 +27,7 @@ class FakeQuery:
 
     def select(self, *args, **kwargs):
         self.operation = "select"
+        self.selection = args[0] if args else "*"
         return self
 
     def insert(self, row: dict):
@@ -60,6 +63,11 @@ class FakeQuery:
                 row.setdefault("status", "open")
             if self.table == "claims":
                 row.setdefault("status", "pending")
+                row.setdefault("updated_at", row["created_at"])
+            if self.table == "notifications":
+                row.setdefault("is_read", False)
+                row.setdefault("item_id", None)
+                row.setdefault("claim_id", None)
             rows.append(row)
             return SimpleNamespace(data=[dict(row)])
 
@@ -81,7 +89,11 @@ class FakeQuery:
         if self.order_by:
             column, desc = self.order_by
             matches = sorted(matches, key=lambda row: row.get(column), reverse=desc)
-        return SimpleNamespace(data=[dict(row) for row in matches])
+        data = [dict(row) for row in matches]
+        if "item:items" in getattr(self, "selection", ""):
+            for row in data:
+                row["item"] = next((dict(item) for item in self.db.tables["items"] if item["id"] == row["item_id"]), None)
+        return SimpleNamespace(data=data)
 
 
 class FakeSupabase:
@@ -90,6 +102,7 @@ class FakeSupabase:
             "profiles": [],
             "items": [],
             "claims": [],
+            "notifications": [],
         }
         if profile_id:
             self.tables["profiles"].append(
@@ -138,11 +151,71 @@ class FakeSupabase:
 
 
 class FakeRpc:
+    """HTTP contract fake; transaction/privilege behavior is tested in database/tests."""
+
     def __init__(self, db: FakeSupabase, name: str, params: dict):
         self.db = db
         self.name = name
         self.params = params
 
+    @staticmethod
+    def fail(code: str, message: str):
+        raise APIError({"code": code, "message": message, "details": None, "hint": None})
+
+    def notify(self, user_id: str, item: dict, claim: dict, kind: str, title: str):
+        self.db.table("notifications").insert({
+            "user_id": user_id, "kind": kind, "title": title,
+            "body": f"Claim update for {item['title']}",
+            "item_id": item["id"], "claim_id": claim["id"],
+        }).execute()
+
     def execute(self):
-        # No seeded matches in the fake database.
-        return SimpleNamespace(data=[])
+        if self.name == "match_items":
+            return SimpleNamespace(data=[])
+        if self.name == "submit_item_claim":
+            return self.submit()
+        if self.name == "decide_item_claim":
+            return self.decide()
+        raise AssertionError(f"Unimplemented RPC: {self.name}")
+
+    def submit(self):
+        p = self.params
+        item = next((r for r in self.db.tables["items"] if r["id"] == p["p_item"]), None)
+        if not item:
+            self.fail("PT404", "Item not found")
+        if item["user_id"] == p["p_actor"]:
+            self.fail("PT400", "Self claim")
+        if item["status"] != "open":
+            self.fail("PT409", "Resolved")
+        if any(
+            r["item_id"] == item["id"] and r["claimant_id"] == p["p_actor"]
+            and r["status"] in ("pending", "approved") for r in self.db.tables["claims"]
+        ):
+            self.fail("PT409", "Duplicate")
+        claim = self.db.add_claim(item["id"], p["p_actor"], message=p["p_message"].strip())
+        self.notify(item["user_id"], item, claim, "claim", "New ownership claim")
+        return SimpleNamespace(data=[claim])
+
+    def decide(self):
+        p = self.params
+        claim = next((r for r in self.db.tables["claims"] if r["id"] == p["p_claim"]), None)
+        if not claim:
+            self.fail("PT404", "Claim not found")
+        item = next(r for r in self.db.tables["items"] if r["id"] == claim["item_id"])
+        if item["user_id"] != p["p_actor"]:
+            self.fail("PT403", "Non owner")
+        if claim["status"] != "pending" or p["p_status"] not in ("approved", "rejected"):
+            self.fail("PT409", "Transition")
+        if p["p_status"] == "approved" and item["status"] != "open":
+            self.fail("PT409", "Resolved")
+        claim.update(status=p["p_status"], updated_at=_now())
+        changed = [claim]
+        if p["p_status"] == "approved":
+            item["status"] = "resolved"
+            for other in self.db.tables["claims"]:
+                if other["item_id"] == item["id"] and other["status"] == "pending":
+                    other.update(status="rejected", updated_at=_now())
+                    changed.append(other)
+        for row in changed:
+            self.notify(row["claimant_id"], item, row, "claim_update", "Claim " + row["status"])
+        return SimpleNamespace(data=[dict(claim)])

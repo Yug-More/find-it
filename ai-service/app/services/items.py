@@ -5,6 +5,7 @@ from supabase import Client
 
 from app.models.item import ItemCreate, ItemMatch, ItemOut, ItemUpdate
 from app.services.embeddings import embedding_text, get_text_embedding
+from app.services.image_cleanup import cleanup_report_image
 
 TABLE = "items"
 MATCH_COUNT = 10
@@ -79,10 +80,13 @@ def update_item(supabase: Client, user_id: str, item_id: UUID, payload: ItemUpda
         "event_date": payload.event_date.isoformat() if payload.event_date else None,
         "embedding": embedding,
     }
-    result = supabase.table(TABLE).update(row).eq("id", str(item_id)).execute()
+    result = supabase.table(TABLE).update(row).eq("id", str(item_id)).eq("user_id", user_id).execute()
     if not result.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    return ItemOut(**result.data[0])
+    updated = ItemOut(**result.data[0])
+    if current.image_url != updated.image_url:
+        cleanup_report_image(supabase, current.image_url, user_id)
+    return updated
 
 
 def delete_item(supabase: Client, user_id: str, item_id: UUID) -> None:
@@ -92,7 +96,8 @@ def delete_item(supabase: Client, user_id: str, item_id: UUID) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete reports you created.",
         )
-    supabase.table(TABLE).delete().eq("id", str(item_id)).execute()
+    supabase.table(TABLE).delete().eq("id", str(item_id)).eq("user_id", user_id).execute()
+    cleanup_report_image(supabase, current.image_url, user_id)
 
 
 def find_matches(supabase: Client, item_id: UUID) -> list[ItemMatch]:

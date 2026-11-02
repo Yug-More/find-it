@@ -2,6 +2,7 @@ import { cleanup, fireEvent, userEvent } from "@testing-library/react-native";
 
 import { ReportForm } from "../src/components/reports/ReportForm";
 import { resetMockReports } from "../src/services/mockReports";
+import { sampleInput } from "./fixtures";
 import { pressButton } from "./pressButton";
 import { renderApp } from "./renderApp";
 
@@ -54,4 +55,15 @@ describe("ReportForm", () => {
       view.getByText("This copy stays on this device. It was not sent to the server."),
     ).toBeOnTheScreen();
   });
+});
+
+
+it("submits explicit image removal without restoring the previous URL", async () => {
+  const onSubmit = jest.fn();
+  const view = await renderApp(<ReportForm initialType="lost" submitting={false}
+    initialValues={sampleInput({imageUrl:"https://example.com/old.jpg"})} onSubmit={onSubmit} />);
+  await userEvent.press(view.getByRole("button", {name:"Remove photo"}));
+  expect(view.getByRole("image", {name:"Selected report photo. No photo"})).toBeOnTheScreen();
+  await pressButton(view.getByRole("button", {name:"Submit report"}));
+  expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({image:null, imageUrl:null}));
 });
