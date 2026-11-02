@@ -16,6 +16,7 @@ export function ReportImage({ uri, label, size = "hero" }: Props) {
   if (!uri) {
     return (
       <View
+        accessible
         accessibilityRole="image"
         accessibilityLabel={`${label}. No photo`}
         style={[styles.placeholder, frame]}
