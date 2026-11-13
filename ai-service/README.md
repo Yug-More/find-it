@@ -109,10 +109,6 @@ scripts/
 | POST   | `/notifications/read-all`  | Mark all owned notifications read (204) |
 
 Health, item browse/details, and match reads are public. Account, claim, notification, and report-write routes require an `Authorization: Bearer <supabase-access-token>` header.
-# Testing
-
-Run the test suite from the `ai-service` directory with `pytest`.
-
 
 ## Claim and notification lifecycle
 
