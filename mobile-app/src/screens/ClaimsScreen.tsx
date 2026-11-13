@@ -115,7 +115,7 @@ export function ClaimsScreen() {
             <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
             <Button label="Try again" variant="text" onPress={() => void load("refresh")} />
           </View>
-        ) : null}
+        ) : undefined}
         ListEmptyComponent={
           <EmptyState
             title="No claims yet"
