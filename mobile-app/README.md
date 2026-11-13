@@ -4,7 +4,7 @@ React Native client for FindIt. The app covers accounts, report photos, search a
 
 ## Stack
 
-- Expo SDK 57
+- Expo SDK 58
 - React Native
 - TypeScript
 - React Navigation

@@ -27,7 +27,7 @@ The core backend for FindIt, built with FastAPI. Handles users, claims, security
    ```
 
    - `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`: Project Settings > API in your Supabase project.
-   - `SUPABASE_JWT_SECRET`: Project Settings > API > JWT Settings.
+   - `SUPABASE_JWT_SECRET` (optional): Project Settings > API > JWT Settings. Only needed as a fallback for legacy HS256 tokens; modern projects are verified through the JWKS endpoint.
    - `GEMINI_API_KEY`: free API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey), used to generate embeddings. The Gemini API free tier (separate from any Google AI Pro/Plus subscription) is enough for this project.
 
 4. Apply the database schema (see [`../database/schema.sql`](../database/schema.sql)) to your Supabase project via the SQL editor or `supabase db push`.
@@ -109,10 +109,6 @@ scripts/
 | POST   | `/notifications/read-all`  | Mark all owned notifications read (204) |
 
 Health, item browse/details, and match reads are public. Account, claim, notification, and report-write routes require an `Authorization: Bearer <supabase-access-token>` header.
-# Testing
-
-Run the test suite from the `ai-service` directory with `pytest`.
-
 
 ## Claim and notification lifecycle
 
