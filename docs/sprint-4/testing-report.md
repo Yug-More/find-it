@@ -39,8 +39,10 @@ Existing suites cover auth forms/protection, report forms/management, filters,
 image selection, real response mapping, claims, notifications, storage cleanup,
 JWT verification, server-admin authorization, and SQL privilege/rollback behavior.
 
-Credential-free CI now defines mobile, backend and database jobs. Hosted results
-must be checked on the PR; local passes alone do not establish hosted success.
+Credential-free CI defines mobile, backend and database jobs. All three hosted
+jobs [passed on PR #12](https://github.com/Yug-More/find-it/actions/runs/43677639662).
+This is separate from the local results above and does not test live services.
+Recheck the latest head on the PR before merging.
 
 ## Browser mock walkthrough
 
