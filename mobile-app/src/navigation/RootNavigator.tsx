@@ -47,7 +47,7 @@ export function RootNavigator() {
     return <SignedOutStack />;
   }
 
-  return <SignedInStack reportType={pendingReportType} />;
+  return <SignedInStack key={session.user.id} reportType={pendingReportType} />;
 }
 
 function SignedOutStack() {

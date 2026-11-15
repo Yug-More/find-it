@@ -107,6 +107,8 @@ def find_matches(supabase: Client, item_id: UUID) -> list[ItemMatch]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     source = result.data[0]
+    if source["status"] != "open" or source.get("embedding") is None:
+        return []
     opposite_type = "found" if source["type"] == "lost" else "lost"
 
     matches = supabase.rpc(
@@ -123,4 +125,8 @@ def find_matches(supabase: Client, item_id: UUID) -> list[ItemMatch]:
     return [
         ItemMatch(item=ItemOut(**row), similarity=row["similarity"])
         for row in matches.data
+        if row["id"] != str(item_id)
+        and row["user_id"] != source["user_id"]
+        and row["status"] == "open"
+        and row["type"] == opposite_type
     ]

@@ -3,7 +3,8 @@ import { fireEvent, userEvent } from "@testing-library/react-native";
 import * as claimsService from "../src/services/claims";
 import { resetMockClaims } from "../src/services/mockClaims";
 import { resetMockNotifications } from "../src/services/mockNotifications";
-import { resetMockReports } from "../src/services/mockReports";
+import { sampleInput } from "./fixtures";
+import { createMockReport, resetMockReports } from "../src/services/mockReports";
 import { pressButton } from "./pressButton";
 import { renderApp } from "./renderApp";
 
@@ -15,10 +16,11 @@ describe("Match, claim, and notification flows", () => {
   });
 
   it("lists matches for the signed-in user's reports", async () => {
+    createMockReport(sampleInput({ type: "found", title: "Toyota key fob found", category: "Keys" }), "other-user");
     const view = await renderApp();
     await userEvent.press(view.getByRole("button", { name: "Matches" }));
 
-    expect(await view.findByText("Red water bottle")).toBeOnTheScreen();
+    expect(await view.findByText("Toyota key fob found")).toBeOnTheScreen();
     expect(view.getByText("81% match")).toBeOnTheScreen();
     expect(view.getByText(/Related to Toyota key fob/)).toBeOnTheScreen();
   });

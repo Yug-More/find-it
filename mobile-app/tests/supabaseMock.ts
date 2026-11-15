@@ -114,6 +114,10 @@ export function setSignOutError(message: string | null): void {
   state.signOutError = message;
 }
 
+export function setSessionRestoreError(message: string | null): void {
+  state.getSessionError = message;
+}
+
 export function holdSessionRestore(): void {
   gate = new Promise((resolve) => {
     releaseGate = resolve;
@@ -175,14 +179,15 @@ export function getSupabaseClient(): SupabaseClient {
   return {
     auth: {
       getSession: async () => {
+        const restoredSession = state.session;
         const pending = gate;
         if (pending) {
           await pending;
         }
         if (state.getSessionError) {
-          return { data: { session: null }, error: { message: state.getSessionError } };
+          throw new Error(state.getSessionError);
         }
-        return { data: { session: state.session }, error: null };
+        return { data: { session: restoredSession }, error: null };
       },
       onAuthStateChange: (callback: AuthListener) => {
         subscribeCount += 1;

@@ -13,9 +13,6 @@ import type { RootStackParamList } from "../navigation/types";
 import { fetchMyProfile } from "../services/admin";
 import { readFullName } from "../services/auth";
 import { shouldUseMockData } from "../services/config";
-import { resetMockClaims } from "../services/mockClaims";
-import { resetMockNotifications } from "../services/mockNotifications";
-import { resetMockReports } from "../services/mockReports";
 import type { UserRole } from "../types/auth";
 
 export function ProfileScreen() {
@@ -54,11 +51,6 @@ export function ProfileScreen() {
   async function handleSignOut() {
     setSubmitting(true);
     setFormError(null);
-    if (shouldUseMockData()) {
-      resetMockReports();
-      resetMockClaims();
-      resetMockNotifications();
-    }
     const result = await signOut();
     if (!result.ok) {
       setSubmitting(false);

@@ -46,3 +46,23 @@ describe("image upload", () => {
     expect(uploadCallCount()).toBe(0);
   });
 });
+
+it("rejects unsupported metadata before reading or uploading", async () => {
+  const read = jest.spyOn(globalThis, "fetch");
+  await expect(uploadReportImage({ ...photo, mimeType: "text/html" }, "user-1"))
+    .rejects.toMatchObject({ kind: "validation" });
+  expect(read).not.toHaveBeenCalled();
+  expect(uploadCallCount()).toBe(0);
+  read.mockRestore();
+});
+
+it("checks actual bytes when picker size is unknown", async () => {
+  const read = jest.spyOn(globalThis, "fetch").mockResolvedValue({
+    ok: true, arrayBuffer: async () => new ArrayBuffer(5 * 1024 * 1024 + 1),
+  } as Response);
+  try {
+    await expect(uploadReportImage({ ...photo, fileSize: null }, "user-1"))
+      .rejects.toMatchObject({ kind: "validation" });
+    expect(uploadCallCount()).toBe(0);
+  } finally { read.mockRestore(); }
+});

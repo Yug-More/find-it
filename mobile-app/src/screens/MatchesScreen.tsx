@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -16,6 +16,7 @@ import type { MatchResult } from "../types/match";
 export function MatchesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user } = useAuth();
+  const generation = useRef(0);
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,6 +24,7 @@ export function MatchesScreen() {
 
   const load = useCallback(
     async (mode: "initial" | "refresh" = "initial") => {
+      const request = ++generation.current;
       if (!user?.id) {
         setError("Sign in to view matches for your reports.");
         setLoading(false);
@@ -35,12 +37,17 @@ export function MatchesScreen() {
       }
       setError(null);
       try {
-        setMatches(await listMatchesForUser(user.id));
+        const next = await listMatchesForUser(user.id);
+        if (request === generation.current) setMatches(next);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Matches could not be loaded.");
+        if (request === generation.current) {
+          setError(caught instanceof Error ? caught.message : "Matches could not be loaded.");
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (request === generation.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [user],
@@ -49,6 +56,7 @@ export function MatchesScreen() {
   useFocusEffect(
     useCallback(() => {
       void load("initial");
+      return () => { generation.current += 1; };
     }, [load]),
   );
 
@@ -74,9 +82,12 @@ export function MatchesScreen() {
         />
       }
       ListHeaderComponent={
-        <Text style={styles.intro}>
-          Match confidence is an estimate based on available report details. It is not a guarantee.
-        </Text>
+        <View>
+          <Text style={styles.intro}>
+            Match confidence is an estimate based on available report details. It is not a guarantee.
+          </Text>
+          {error ? <ErrorState message={error} onRetry={() => void load("refresh")} /> : null}
+        </View>
       }
       ListEmptyComponent={
         <EmptyState

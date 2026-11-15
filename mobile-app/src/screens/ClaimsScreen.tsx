@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -24,6 +24,7 @@ type PendingDecision = {
 export function ClaimsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { session, user } = useAuth();
+  const generation = useRef(0);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ export function ClaimsScreen() {
 
   const load = useCallback(
     async (mode: "initial" | "refresh" = "initial") => {
+      const request = ++generation.current;
       if (!user?.id) {
         setError("Sign in to view claims.");
         setLoading(false);
@@ -51,15 +53,20 @@ export function ClaimsScreen() {
           listClaimsForUser(session?.access_token, user.id),
           listReports(),
         ]);
+        if (request !== generation.current) return;
         setClaims(nextClaims);
         setOwnedIds(
           new Set(reports.filter((report) => report.userId === user.id).map((report) => report.id)),
         );
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Claims could not be loaded.");
+        if (request === generation.current) {
+          setError(caught instanceof Error ? caught.message : "Claims could not be loaded.");
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (request === generation.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [session, user],
@@ -68,6 +75,7 @@ export function ClaimsScreen() {
   useFocusEffect(
     useCallback(() => {
       void load("initial");
+      return () => { generation.current += 1; };
     }, [load]),
   );
 

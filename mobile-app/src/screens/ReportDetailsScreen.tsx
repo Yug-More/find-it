@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
@@ -32,6 +32,8 @@ export function ReportDetailsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { session, user } = useAuth();
   const { report, loading, error, retry } = useReport(route.params.reportId);
+  const sideGeneration = useRef(0);
+  const [sideLoading, setSideLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -45,9 +47,17 @@ export function ReportDetailsScreen() {
     if (!report) {
       return;
     }
+    const request = ++sideGeneration.current;
     setSideError(null);
+    setSideLoading(true);
+    setMatches([]);
+    setClaims([]);
     try {
-      const nextMatches = await listMatchesForReport(report.id);
+      const [nextMatches, nextClaims] = await Promise.all([
+        listMatchesForReport(report.id),
+        owner && user?.id ? listClaimsForItem(report.id, session?.access_token, user.id) : Promise.resolve([]),
+      ]);
+      if (request !== sideGeneration.current) return;
       setMatches(
         nextMatches.map((match) => ({
           ...match,
@@ -55,13 +65,13 @@ export function ReportDetailsScreen() {
           sourceTitle: report.title,
         })),
       );
-      if (owner && user?.id) {
-        setClaims(await listClaimsForItem(report.id, session?.access_token, user.id));
-      } else {
-        setClaims([]);
-      }
+      setClaims(nextClaims);
     } catch (caught) {
-      setSideError(caught instanceof Error ? caught.message : "Related data could not be loaded.");
+      if (request === sideGeneration.current) {
+        setSideError(caught instanceof Error ? caught.message : "Related data could not be loaded.");
+      }
+    } finally {
+      if (request === sideGeneration.current) setSideLoading(false);
     }
   }, [owner, report, session, user]);
 
@@ -70,6 +80,7 @@ export function ReportDetailsScreen() {
       if (report) {
         void loadSideData();
       }
+      return () => { sideGeneration.current += 1; };
     }, [loadSideData, report]),
   );
 
@@ -175,11 +186,10 @@ export function ReportDetailsScreen() {
           subtitle="Match confidence is an estimate based on available report details."
         />
         {sideError ? (
-          <Text accessibilityRole="alert" style={styles.sideError}>
-            {sideError}
-          </Text>
+          <ErrorState message={sideError} onRetry={() => void loadSideData()} />
         ) : null}
-        {matches.length === 0 ? (
+        {sideLoading ? <LoadingState message="Loading related reports and claims" /> : null}
+        {!sideLoading && !sideError && matches.length === 0 ? (
           <Text style={styles.emptyNote}>No similar reports are available for this item yet.</Text>
         ) : (
           <View style={styles.stack}>
@@ -201,7 +211,7 @@ export function ReportDetailsScreen() {
         {owner ? (
           <>
             <SectionHeading title="Claims" />
-            {claims.length === 0 ? (
+            {!sideLoading && !sideError && claims.length === 0 ? (
               <Text style={styles.emptyNote}>No claims have been submitted for this report.</Text>
             ) : (
               <View style={styles.stack}>
@@ -302,9 +312,5 @@ const styles = StyleSheet.create({
   emptyNote: {
     ...typography.body,
     color: colors.textSecondary,
-  },
-  sideError: {
-    ...typography.body,
-    color: colors.error,
   },
 });
