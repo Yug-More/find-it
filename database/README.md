@@ -12,7 +12,7 @@ Supabase Postgres schema and seed data.
 
 `schema.sql` creates the required `vector` extension. If extension creation is blocked, enable **vector** under **Database -> Extensions** first.
 
-For an existing database, apply [`migrations/20261021_schema_hardening.sql`](./migrations/20261021_schema_hardening.sql) instead of resetting. Then apply [`migrations/20261102_claim_notification_lifecycle.sql`](./migrations/20261102_claim_notification_lifecycle.sql) for claim decisions and notifications. Run migrations in filename order before deploying the matching backend.
+For an existing database, apply [`migrations/20261021_schema_hardening.sql`](./migrations/20261021_schema_hardening.sql) instead of resetting. Then apply [`migrations/20261102_admin_controls.sql`](./migrations/20261102_admin_controls.sql) for server-managed roles, followed by [`migrations/20261102_claim_notification_lifecycle.sql`](./migrations/20261102_claim_notification_lifecycle.sql) for claim decisions and notifications. Run migrations in filename order before deploying the matching backend.
 
 ## Seed data
 

@@ -1,6 +1,6 @@
 # FindIt
 
-FindIt is an AI-powered lost-and-found platform that connects users with their missing items through intelligent image, description, location, and date-based matching.
+FindIt is an AI-powered lost-and-found platform that connects users with their missing items through text-embedding recommendations. Reports include optional photos, location, and dates for users to review; matching currently embeds title, description, category, color, and brand.
 
 ## Project status
 
@@ -106,7 +106,7 @@ The app includes sign-up, sign-in, a profile screen, report photos, search and f
 
    ```bash
    cd mobile-app
-   npm install
+   npm ci
    ```
 
 2. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` when you want to sign in. Leave `EXPO_PUBLIC_USE_MOCK=true` to keep sample data on the device.
@@ -129,7 +129,25 @@ The app includes sign-up, sign-in, a profile screen, report photos, search and f
 
 See [`mobile-app/README.md`](mobile-app/README.md) for environment variables, mock mode, and live submission. Do not put the Supabase service-role key, JWT secret, Gemini API key, or access tokens in the mobile app. Expo includes every `EXPO_PUBLIC_` variable in the client bundle.
 
-### TODO
+### Final demonstration and verification
 
-- add design decisions to README
-- add deployment instructions to README
+See [Sprint 4 documentation](docs/sprint-4/README.md), the
+[demo script and deployment notes](docs/sprint-4/final-demo-script.md), and the
+[testing report](docs/sprint-4/testing-report.md). Mock mode needs no credentials:
+run the mobile web app and choose **Continue with demo account**. This resets safe
+sample reports, claim decisions, and notifications for a repeatable walkthrough.
+
+The current lifecycle uses `open` and `resolved`. Approving a claim resolves the
+report immediately and retains decision history; there is no separate physical
+handover confirmation. Matching confidence is an estimate. Live-service acceptance
+and final course submission still require the team checklist.
+
+Design decisions: retain one FastAPI backend, typed mobile service boundaries,
+existing design tokens, database-managed admin roles, and transactional claim
+functions. Native push, structured verification questions, and automatic match
+notifications remain deferred. Existing deployments must apply all database
+migrations in filename order, including admin controls and claim lifecycle.
+
+Credential-free checks run in `.github/workflows/verify.yml`. Local checks are
+listed in each component README. Do not expose a local development server publicly
+as a production deployment.
