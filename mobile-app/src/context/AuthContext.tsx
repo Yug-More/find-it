@@ -16,6 +16,7 @@ import {
   signUp as signUpAccount,
 } from "../services/auth";
 import { shouldUseMockData } from "../services/config";
+import { prepareDemoData, resetDemoData } from "../services/demoData";
 import { buildDemoSession } from "../services/mockAuth";
 import { getSupabaseClient, getSupabaseConfigError } from "../services/supabase";
 import type { SignInResult, SignOutResult, SignUpInput, SignUpResult } from "../types/auth";
@@ -82,6 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthMessage(null);
     }
 
+    if (!next) {
+      setPendingReportType(null);
+      if (shouldUseMockData()) resetDemoData();
+    }
     signingOut.current = false;
     hadSession.current = Boolean(next);
     setIsDemoSession(false);
@@ -100,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     let active = true;
+    let authEventReceived = false;
 
     const {
       data: { subscription },
@@ -107,11 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!active) {
         return;
       }
+      authEventReceived = true;
       applySession(next);
     });
 
     void supabase.auth.getSession().then(({ data, error }) => {
-      if (!active) {
+      if (!active || authEventReceived) {
         return;
       }
       if (error) {
@@ -119,6 +126,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       applySession(data.session);
+    }).catch(() => {
+      if (active && !authEventReceived) {
+        setAuthMessage("Your saved session could not be restored. Sign in again.");
+        setLoading(false);
+      }
     });
 
     return () => {
@@ -131,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!shouldUseMockData()) {
       return;
     }
+    prepareDemoData();
     const demo = buildDemoSession();
     demoSessionActive.current = true;
     hadSession.current = true;
@@ -174,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthMessage(null);
       setIsDemoSession(false);
       setSession(null);
+      resetDemoData();
       signingOut.current = false;
       return { ok: true as const };
     }
@@ -188,6 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthMessage(null);
     setIsDemoSession(false);
     setSession(null);
+    if (shouldUseMockData()) resetDemoData();
     return result;
   }, [isDemoSession]);
 

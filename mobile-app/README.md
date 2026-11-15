@@ -25,10 +25,10 @@ From the repository root:
 
 ```bash
 cd mobile-app
-npm install
+npm ci
 ```
 
-`npm ci` also works when the lock file matches `package.json`.
+Use the committed lockfile to reproduce the reviewed dependency graph.
 
 ## Run
 
@@ -100,7 +100,10 @@ When mock mode is on, Welcome includes **Continue with demo account**. That load
 
 Resolved reports stay in My Reports and claim history. Mock match discovery, like live discovery, uses owned open reports and excludes resolved candidates.
 
-The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports, owner buttons, matches, and claims can be checked.
+Entering the demo resets seven safe reports, pending/approved/rejected claim history,
+and read/unread notifications. Keys are paired with a found key fob using a repeatable
+category/title-word rule and an illustrative 81% estimate. It does not call the live
+matching provider. The sample key fob belongs to the test user `user-1`. The sample water bottle belongs to someone else, so My Reports, owner buttons, matches, and claims can be checked.
 
 ## Real API integrations
 
@@ -181,3 +184,13 @@ The app does not create the bucket. If the bucket or a policy is missing, photo 
 - Hosted-service behavior requires staging verification after applying migrations and Storage setup. Offline tests and mock-mode review do not prove live integration.
 
 See [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md) for the dependency review.
+
+## Final demonstration
+
+See [Sprint 4 demo steps](../docs/sprint-4/final-demo-script.md) and
+[verification results](../docs/sprint-4/testing-report.md). Uploads validate MIME
+metadata and actual nonempty byte length (maximum 5 MB) before Storage upload.
+The bucket should also enforce a 5 MB limit and allowed image content types.
+Session restoration ignores late snapshots after newer auth events and recovers
+from local storage errors. Signing out successfully or losing the session resets
+local mock stores; a failed sign-out preserves them.

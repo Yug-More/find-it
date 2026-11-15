@@ -1,5 +1,7 @@
-import { fireEvent, userEvent, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, userEvent, waitFor } from "@testing-library/react-native";
 
+import { createMockReport, listMockReports } from "../src/services/mockReports";
+import { sampleInput } from "./fixtures";
 import { createReport } from "../src/services/reports";
 import { MISSING_SUPABASE_MESSAGE } from "../src/services/supabase";
 import {
@@ -9,7 +11,9 @@ import {
   listenerCount,
   releaseSessionRestore,
   setMockSession,
+  setSessionRestoreError,
   setSignInError,
+  setSignOutError,
   setSignUpNeedsConfirmation,
   signInCallCount,
   signUpCallCount,
@@ -230,4 +234,41 @@ describe("authentication flow", () => {
     ).toBeOnTheScreen();
     expect(mockedCreateReport).not.toHaveBeenCalled();
   });
+});
+
+
+it("ignores a stale restored session after a newer sign-out event", async () => {
+  holdSessionRestore();
+  const view = await renderApp(undefined, { settleAuth: false });
+  await act(async () => { setMockSession(null); });
+  expect(await view.findByRole("button", { name: "Create account" })).toBeOnTheScreen();
+  await act(async () => { releaseSessionRestore(); });
+  expect(view.getByRole("button", { name: "Create account" })).toBeOnTheScreen();
+  expect(view.queryByRole("button", { name: "Profile" })).toBeNull();
+});
+
+it("recovers from a rejected session restoration promise", async () => {
+  setSessionRestoreError("storage unavailable");
+  const view = await renderApp();
+  expect(await view.findByText("Your saved session could not be restored. Sign in again.")).toBeOnTheScreen();
+  expect(view.getByRole("button", { name: "Sign in" })).toBeOnTheScreen();
+});
+
+
+it("preserves mock reports if sign-out fails", async () => {
+  const created = createMockReport(sampleInput(), "user-1");
+  setSignOutError("Sign-out failed. Try again.");
+  const view = await renderApp();
+  await userEvent.press(view.getByRole("button", { name: "Profile" }));
+  await userEvent.press(view.getByRole("button", { name: "Sign out" }));
+  expect(await view.findByText("Sign-out failed. Try again.")).toBeOnTheScreen();
+  expect(listMockReports().some(report => report.id === created.id)).toBe(true);
+});
+
+it("clears user-specific mock changes when the session expires", async () => {
+  const created = createMockReport(sampleInput(), "user-1");
+  const view = await renderApp();
+  await act(async () => { setMockSession(null); });
+  expect(await view.findByText(/Your session has expired/)).toBeOnTheScreen();
+  expect(listMockReports().some(report => report.id === created.id)).toBe(false);
 });

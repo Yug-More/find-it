@@ -1,3 +1,4 @@
+import { MAX_IMAGE_BYTES, validateSelectedImage } from "../utils/imageValidation";
 import type { SelectedImage } from "../types/report";
 import { ReportServiceError } from "./errors";
 import { getSupabaseClient, getSupabaseConfigError, MISSING_SUPABASE_MESSAGE } from "./supabase";
@@ -5,6 +6,8 @@ import { getSupabaseClient, getSupabaseConfigError, MISSING_SUPABASE_MESSAGE } f
 export const REPORT_IMAGE_BUCKET = "report-images";
 
 export async function uploadReportImage(image: SelectedImage, userId: string): Promise<string> {
+  const validationError = validateSelectedImage(image);
+  if (validationError) throw new ReportServiceError(validationError, "validation");
   const configError = getSupabaseConfigError();
   if (configError) {
     throw new ReportServiceError(configError, "configuration");
@@ -25,6 +28,9 @@ export async function uploadReportImage(image: SelectedImage, userId: string): P
   const extension = extensionFor(image.mimeType);
   const path = `${userId}/${Date.now()}-${randomSuffix()}.${extension}`;
   const body = await readImage(image.uri);
+  if (body.byteLength > MAX_IMAGE_BYTES || body.byteLength === 0) {
+    throw new ReportServiceError("Choose a nonempty image that is 5 MB or smaller.", "validation");
+  }
 
   const { error } = await supabase.storage.from(REPORT_IMAGE_BUCKET).upload(path, body, {
     contentType: image.mimeType,

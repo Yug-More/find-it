@@ -125,3 +125,10 @@ Claim submission notifies the report owner. Approval/rejection notifies the clai
 After a successful image replacement, image removal, or report deletion, the backend attempts to remove the previous unreferenced image from `report-images`. Only canonical public URLs in the configured Supabase project and `{authenticated-owner-id}/{filename}` folder qualify. External, other-owner, malformed, encoded, nested, signed, and shared URLs are skipped. New uploads and the report save complete before cleanup. Failures log a fixed operational warning without URLs or credentials; the successful report change remains successful.
 
 Storage deletion uses the existing server-only service-role client. Client uploads still need the owner-folder insert policy documented in the mobile README. Keep uploaded object names unique and immutable; do not reuse old object URLs for new reports. Cleanup is best effort, with no durable retry worker. Uploads abandoned before a successful report save and objects left after cleanup failures need an operational sweep. Supabase Storage and Postgres cannot share an atomic transaction.
+
+## Matching eligibility
+
+Resolved source reports and reports without embeddings return an empty match list.
+The API also excludes same-report, same-owner, same-type and resolved candidates
+at its result boundary. The existing vector algorithm and RPC signature are unchanged.
+See [Sprint 4 verification](../docs/sprint-4/testing-report.md) for offline versus hosted coverage.

@@ -1,37 +1,23 @@
 import type { MatchResult } from "../types/match";
 import { getMockReport, listMockReports } from "./mockReports";
 
-const seeded: Record<string, { matchId: string; similarity: number }[]> = {
-  "sample-lost-keys": [{ matchId: "sample-found-bottle", similarity: 0.81 }],
-  "sample-found-bottle": [{ matchId: "sample-lost-keys", similarity: 0.81 }],
-};
-
+// A repeatable demo estimate, independent of live embeddings. Require a shared
+// category and descriptive title word so unrelated sample items are not paired.
 export function listMockMatchesForReport(reportId: string): MatchResult[] {
   const source = getMockReport(reportId);
-  const pairs = seeded[reportId] ?? [];
-  return pairs
-    .map((pair) => {
-      try {
-        const report = getMockReport(pair.matchId);
-        if (report.status !== "open") return null;
-        return {
-          report,
-          similarity: pair.similarity,
-          sourceReportId: source.id,
-          sourceTitle: source.title,
-        };
-      } catch {
-        return null;
-      }
-    })
-    .filter((item): item is MatchResult => item !== null);
+  if (source.status !== "open") return [];
+  const words = new Set(source.title.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []);
+  return listMockReports()
+    .filter((report) => report.status === "open" && report.id !== source.id &&
+      report.userId !== source.userId && report.type !== source.type &&
+      Boolean(source.category) && report.category === source.category &&
+      (report.title.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []).some((word) => words.has(word)))
+    .map((report) => ({ report, similarity: 0.81, sourceReportId: source.id, sourceTitle: source.title }));
 }
 
 export function listMockMatchesForUser(userId: string): MatchResult[] {
-  const owned = listMockReports().filter((report) => report.userId === userId && report.status === "open");
-  const results: MatchResult[] = [];
-  for (const report of owned) {
-    results.push(...listMockMatchesForReport(report.id));
-  }
-  return results.sort((left, right) => right.similarity - left.similarity);
+  return listMockReports()
+    .filter((report) => report.userId === userId && report.status === "open")
+    .flatMap((report) => listMockMatchesForReport(report.id))
+    .sort((left, right) => right.similarity - left.similarity);
 }

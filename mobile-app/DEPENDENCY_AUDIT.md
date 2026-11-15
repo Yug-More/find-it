@@ -1,3 +1,33 @@
+# Mobile dependency audit — November 14, 2026
+
+## Current SDK 58 result
+
+The clean locked install and `npm audit --json` report **28 affected package
+entries: 1 low, 27 moderate, 0 high, 0 critical**. The production-install graph
+(`npm audit --omit=dev --json`) reports **3 moderate entries**, including Expo
+fingerprint tooling. These are package entries with propagated effects, not
+28 independent advisories or proof that every affected path ships in the app.
+
+The initial SDK 58 graph had 29 entries, including high-severity `zod` 3.25.76.
+`eslint-plugin-react-hooks` explicitly supports `^3.25.0 || ^4.0.0` and imports
+`zod/v4`; updating this transitive dependency to **4.6.7** removes that advisory.
+Only its lockfile entry changed. The Expo/React Native versions and manifests are
+unchanged; a fresh `npm ci`, lint, typecheck, tests and SDK checks verify the graph.
+
+Remaining root advisories concern deepmerge, glob and minimatch, linked in the
+historical report below. `npm audit fix --dry-run --json` still reported the
+remaining findings and suggested incompatible Expo/Jest version changes for some
+paths. No force fix, global override, SDK downgrade or unrelated tool update was
+applied. Recheck when their consumers support patched versions. No zero-risk or
+production-security certification is implied.
+
+Database test-package install audit: zero findings. This npm review does not
+constitute a backend dependency-security audit.
+
+---
+
+## Historical review (superseded by the SDK 58 result above)
+
 # Mobile dependency audit — 2026-11-02
 
 Commands: `npm audit --json`, `npm audit --omit=dev --json`, `npm ls zod deepmerge --all --json`, and `npm audit fix --dry-run --json`. No force updates or overrides were used.
